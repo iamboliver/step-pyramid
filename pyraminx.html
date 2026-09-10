@@ -73,9 +73,9 @@
     h1 {
       font-size: 2.35rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #ffffff 40%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+      text-shadow: 0 0 32px rgba(192, 132, 252, 0.35);
       margin-bottom: 0.35rem;
     }
 
@@ -202,7 +202,9 @@
     .chip-red .chip-swatch { background: var(--red); }
     .chip-green .chip-swatch { background: var(--green); }
     .chip-yellow .chip-swatch { background: var(--yellow); }
-    .chip-cycle .chip-swatch { background: #cbd5e1; }
+    .chip-cycle .chip-swatch {
+      background: conic-gradient(from 0deg, var(--red), var(--yellow), var(--green), var(--blue), var(--red));
+    }
 
     /* Dual Stage in Editor: 2D Face + 3D Reference */
     .editor-layout {
@@ -514,8 +516,8 @@
     }
 
     .hint-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-left: 5px solid var(--accent);
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.28);
       border-radius: 14px;
       padding: 1.15rem 1.4rem;
       width: 100%;
@@ -682,6 +684,18 @@
       color: #10b981;
       text-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .btn:hover, .btn-solve:hover, .side-btn:hover, .move-chip.current {
+        transform: none !important;
+      }
+      .bottom-alignment-alert { animation: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -734,7 +748,7 @@
       </div>
       <div class="color-chip chip-cycle active-brush" data-color="cycle" title="Click segment to cycle colors">
         <span class="chip-swatch"></span>
-        <span>🔄 Cycle Mode</span>
+        <span>Cycle colours</span>
       </div>
     </div>
 
@@ -1020,7 +1034,23 @@
         this.lastMouse = { x: 0, y: 0 };
         this.highlightFace = -1;
 
+        this.setupHiDPI();
+        window.addEventListener('resize', () => { this.setupHiDPI(); this.render(); });
         this.initEvents();
+      }
+
+      // Match the canvas backing store to the device pixel ratio so the 3D
+      // pyramid renders crisp on retina screens instead of upscaled and soft.
+      setupHiDPI() {
+        const rect = this.canvas.getBoundingClientRect
+          ? this.canvas.getBoundingClientRect()
+          : { width: 0, height: 0 };
+        this.w = rect.width || parseFloat(this.canvas.getAttribute('width')) || 300;
+        this.h = rect.height || parseFloat(this.canvas.getAttribute('height')) || 300;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+        this.canvas.width = Math.round(this.w * dpr);
+        this.canvas.height = Math.round(this.h * dpr);
+        if (this.ctx.setTransform) this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
       initEvents() {
@@ -1096,31 +1126,28 @@
         return [x1, y2, z2];
       }
 
-      project(v, w, h) {
+      project(v) {
         const factor = this.scale / (v[2] + this.dist);
         return [
-          w / 2 + v[0] * factor,
-          h / 2 - v[1] * factor
+          this.w / 2 + v[0] * factor,
+          this.h / 2 - v[1] * factor
         ];
       }
 
       render() {
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-        this.ctx.clearRect(0, 0, w, h);
+        const w = this.w, h = this.h;
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, w, h);
+        ctx.lineJoin = 'round';
 
-        // Sort tiles by depth (Painter's algorithm)
+        const turning = this.activeMove && this.animAngle !== 0;
+        const axis = this.activeMove ? getMoveAxis(this.activeMove) : null;
+
         const transformedTiles = TILES_3D.map(tile => {
-          let v1 = tile.v1;
-          let v2 = tile.v2;
-          let v3 = tile.v3;
-          let center = tile.center;
-
+          let v1 = tile.v1, v2 = tile.v2, v3 = tile.v3, center = tile.center;
           const inActiveTurn = this.activeMove && isTileInMove(tile, this.activeMove);
 
-          // Apply rotation animation if active
-          if (inActiveTurn && this.animAngle !== 0) {
-            const axis = getMoveAxis(this.activeMove);
+          if (inActiveTurn && turning) {
             v1 = rotateAroundAxis(v1, axis, this.animAngle);
             v2 = rotateAroundAxis(v2, axis, this.animAngle);
             v3 = rotateAroundAxis(v3, axis, this.animAngle);
@@ -1132,7 +1159,6 @@
           const tv3 = this.rotateVertex(v3, this.rotX, this.rotY);
           const tCenter = this.rotateVertex(center, this.rotX, this.rotY);
 
-          // Normal vector for 3D lighting & culling
           const ux = tv2[0] - tv1[0], uy = tv2[1] - tv1[1], uz = tv2[2] - tv1[2];
           const vx = tv3[0] - tv1[0], vy = tv3[1] - tv1[1], vz = tv3[2] - tv1[2];
           const nx = uy * vz - uz * vy;
@@ -1140,16 +1166,16 @@
           const nz = ux * vy - uy * vx;
           const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz) || 1;
 
-          // Realistic 3D directional lighting
-          const lx = 0.35, ly = 0.65, lz = 0.67;
+          // Directional key light plus a soft fill so back-facing angles never crush to flat black.
+          const lx = 0.35, ly = 0.62, lz = 0.70;
           const dot = Math.max(0, (nx*lx + ny*ly + nz*lz) / nLen);
-          const shade = 0.80 + 0.20 * dot;
+          const shade = 0.60 + 0.46 * dot;
 
           return {
             tile,
-            p1: this.project(tv1, w, h),
-            p2: this.project(tv2, w, h),
-            p3: this.project(tv3, w, h),
+            p1: this.project(tv1),
+            p2: this.project(tv2),
+            p3: this.project(tv3),
             depth: tCenter[2],
             isFacingFront: nz > -0.05,
             shade,
@@ -1157,79 +1183,101 @@
           };
         });
 
-        transformedTiles.sort((a, b) => b.depth - a.depth);
-
-        // Draw triangles
-        transformedTiles.forEach(item => {
+        const drawTile = (item) => {
           if (!item.isFacingFront) return;
-
           const colorKey = cubeState[item.tile.face][item.tile.tileId];
           const baseColor = COLOR_HEX[colorKey] || '#334155';
 
-          this.ctx.beginPath();
-          this.ctx.moveTo(item.p1[0], item.p1[1]);
-          this.ctx.lineTo(item.p2[0], item.p2[1]);
-          this.ctx.lineTo(item.p3[0], item.p3[1]);
-          this.ctx.closePath();
+          ctx.beginPath();
+          ctx.moveTo(item.p1[0], item.p1[1]);
+          ctx.lineTo(item.p2[0], item.p2[1]);
+          ctx.lineTo(item.p3[0], item.p3[1]);
+          ctx.closePath();
 
-          this.ctx.fillStyle = applyShade(baseColor, item.shade);
-          this.ctx.fill();
+          ctx.fillStyle = applyShade(baseColor, item.shade);
+          ctx.fill();
 
-          // Stroke: Highlight rotating layer in golden yellow
           if (item.inActiveTurn) {
-            this.ctx.strokeStyle = '#fde047';
-            this.ctx.lineWidth = 3.5;
-            this.ctx.stroke();
-
-            // Subtle bright gloss on turning layer
-            this.ctx.fillStyle = 'rgba(254, 240, 138, 0.15)';
-            this.ctx.fill();
+            ctx.strokeStyle = '#fde047';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(254, 240, 138, 0.16)';
+            ctx.fill();
           } else {
-            this.ctx.strokeStyle = '#0f172a';
-            this.ctx.lineWidth = 1.8;
-            this.ctx.stroke();
+            ctx.strokeStyle = 'rgba(8, 12, 24, 0.9)';
+            ctx.lineWidth = 1.25;
+            ctx.stroke();
           }
 
           if (this.highlightFace === item.tile.face) {
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-            this.ctx.fill();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.fill();
           }
-        });
+        };
 
-        // 3D Directional Turn Arrow
-        if (this.activeMove) {
-          this.drawTurnArrow(w, h);
+        const byDepth = (a, b) => b.depth - a.depth;
+        if (turning) {
+          // During a turn, paint the static body first, then the rotating band on
+          // top of it. The moving layer is the focus and stays highlighted, so
+          // compositing it over avoids the z-fighting a single centroid sort causes
+          // where the two groups interpenetrate at the shear plane.
+          transformedTiles.filter(t => !t.inActiveTurn).sort(byDepth).forEach(drawTile);
+          transformedTiles.filter(t => t.inActiveTurn).sort(byDepth).forEach(drawTile);
+        } else {
+          transformedTiles.sort(byDepth).forEach(drawTile);
         }
+
+        if (this.activeMove) this.drawTurnArrow(w, h);
       }
 
       drawTurnArrow(w, h) {
         const axis = getMoveAxis(this.activeMove);
         const tAxis = this.rotateVertex(axis, this.rotX, this.rotY);
         const isClockwise = !this.activeMove.endsWith("'");
+        const ctx = this.ctx;
 
-        const radius = this.scale * 0.32;
-        const center = [w / 2 + tAxis[0] * (this.scale * 0.28), h / 2 - tAxis[1] * (this.scale * 0.28)];
+        // Size the badge to the canvas, not the projection zoom, and float it just
+        // outside the corner the move pivots on.
+        const unit = Math.min(w, h);
+        const radius = unit * 0.16;
+        const cx = w / 2 + tAxis[0] * unit * 0.30;
+        const cy = h / 2 - tAxis[1] * unit * 0.30;
 
-        this.ctx.save();
-        this.ctx.strokeStyle = '#fde047';
-        this.ctx.shadowColor = '#f59e0b';
-        this.ctx.shadowBlur = 18;
-        this.ctx.lineWidth = 4.5;
+        // Sweep the arc in the move's own rotational sense: CCW on screen for a
+        // prime move, CW otherwise. ~150 deg reads as "one third turn" without
+        // closing into a full ring.
+        const span = Math.PI * 5 / 6;
+        const startAng = isClockwise ? -Math.PI * 0.4 : Math.PI * 1.4;
+        const endAng = isClockwise ? startAng + span : startAng - span;
 
-        this.ctx.beginPath();
-        const startAng = isClockwise ? 0.1 : Math.PI;
-        const endAng = isClockwise ? 1.6 * Math.PI : 2.5 * Math.PI;
-        this.ctx.arc(center[0], center[1], radius, startAng, endAng, !isClockwise);
-        this.ctx.stroke();
+        ctx.save();
+        ctx.strokeStyle = '#fde047';
+        ctx.shadowColor = 'rgba(245, 158, 11, 0.9)';
+        ctx.shadowBlur = 16;
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, startAng, endAng, !isClockwise);
+        ctx.stroke();
 
-        // Arrowhead
-        this.ctx.fillStyle = '#fde047';
-        this.ctx.beginPath();
-        const arrowX = center[0] + Math.cos(endAng) * radius;
-        const arrowY = center[1] + Math.sin(endAng) * radius;
-        this.ctx.arc(arrowX, arrowY, 7.5, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.restore();
+        // Solid triangular arrowhead, tangent to the arc at its leading end.
+        const tip = [cx + Math.cos(endAng) * radius, cy + Math.sin(endAng) * radius];
+        const tangent = endAng + (isClockwise ? Math.PI / 2 : -Math.PI / 2);
+        const size = 15;
+        ctx.beginPath();
+        ctx.moveTo(tip[0] + Math.cos(tangent) * size, tip[1] + Math.sin(tangent) * size);
+        ctx.lineTo(
+          tip[0] + Math.cos(tangent + Math.PI * 0.82) * size,
+          tip[1] + Math.sin(tangent + Math.PI * 0.82) * size
+        );
+        ctx.lineTo(
+          tip[0] + Math.cos(tangent - Math.PI * 0.82) * size,
+          tip[1] + Math.sin(tangent - Math.PI * 0.82) * size
+        );
+        ctx.closePath();
+        ctx.fillStyle = '#fde047';
+        ctx.fill();
+        ctx.restore();
       }
     }
 
@@ -2112,6 +2160,7 @@
       updateStartingHold();
       editorContainer.style.display = 'none';
       solutionView.style.display = 'flex';
+      solver3D.setupHiDPI();   // canvas was display:none at construction; measure it now
       renderCurrentStep();
       playBeep(700, 0.2);
     });
@@ -2231,7 +2280,9 @@
           setSolvedState();
         };
 
+        stopMoveAnimation();
         solver3D.activeMove = null;
+        solver3D.animAngle = 0;
         solver3D.render();
         highlightMoveList();
         return;
@@ -2272,35 +2323,73 @@
       return 'front';
     }
 
+    const PREFERS_REDUCED_MOTION =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let animPending = [];   // setTimeout ids awaiting cleanup
+    function stopMoveAnimation() {
+      if (animTimer) { cancelAnimationFrame(animTimer); animTimer = null; }
+      animPending.forEach(clearTimeout);
+      animPending = [];
+    }
+
+    // Demonstrates the move: the cube is shown in its pre-move position, then the
+    // active layer swings the full 120 deg into place, eases back to rest, and
+    // repeats a few times so it can be caught while the physical puzzle is in hand.
     function triggerMoveAnimation() {
-      if (animTimer) cancelAnimationFrame(animTimer);
+      stopMoveAnimation();
 
       const move = solutionSteps[currentStepIdx];
       if (!move) return;
 
-      const isCCW = move.endsWith("'");
-      const targetAngle = (isCCW ? -1 : 1) * (2 * Math.PI / 3); // 120 deg
-      let startTime = performance.now();
-      const duration = 1200; // ms
+      const targetAngle = (move.endsWith("'") ? -1 : 1) * (2 * Math.PI / 3);
 
-      function animate(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const ease = 0.5 * (1 - Math.cos(Math.PI * progress));
-        solver3D.animAngle = targetAngle * ease;
+      if (PREFERS_REDUCED_MOTION) {
+        solver3D.animAngle = 0;   // no swing; the arrow + text carry the direction
         solver3D.render();
-
-        if (progress < 1) {
-          animTimer = requestAnimationFrame(animate);
-        } else {
-          setTimeout(() => {
-            solver3D.animAngle = 0;
-            solver3D.render();
-          }, 350);
-        }
+        return;
       }
 
-      animTimer = requestAnimationFrame(animate);
+      const OUT = 620, HOLD = 460, BACK = 380, GAP = 620, CYCLES = 3;
+      // ease-out-quint on the way out (snaps toward the click, decelerates hard),
+      // ease-in-out on the way back so the reset doesn't read as a second move.
+      const easeOutQuint = t => 1 - Math.pow(1 - t, 5);
+      const easeInOut = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+
+      let cycle = 0;
+      let phaseStart = performance.now();
+      let phase = 'out';
+
+      function frame(now) {
+        const elapsed = now - phaseStart;
+
+        if (phase === 'out') {
+          const p = Math.min(elapsed / OUT, 1);
+          solver3D.animAngle = targetAngle * easeOutQuint(p);
+          solver3D.render();
+          if (p >= 1) { phase = 'hold'; phaseStart = now; }
+        } else if (phase === 'hold') {
+          solver3D.animAngle = targetAngle;
+          if (elapsed >= HOLD) { phase = 'back'; phaseStart = now; }
+        } else if (phase === 'back') {
+          const p = Math.min(elapsed / BACK, 1);
+          solver3D.animAngle = targetAngle * (1 - easeInOut(p));
+          solver3D.render();
+          if (p >= 1) {
+            solver3D.animAngle = 0;
+            solver3D.render();
+            cycle++;
+            if (cycle >= CYCLES) { animTimer = null; return; }
+            phase = 'gap'; phaseStart = now;
+          }
+        } else { // gap
+          if (elapsed >= GAP) { phase = 'out'; phaseStart = now; }
+        }
+
+        animTimer = requestAnimationFrame(frame);
+      }
+
+      animTimer = requestAnimationFrame(frame);
     }
 
     document.getElementById('replay-anim-btn').addEventListener('click', () => {
@@ -2331,6 +2420,9 @@
     });
 
     document.getElementById('exit-solve-btn').addEventListener('click', () => {
+      stopMoveAnimation();
+      solver3D.activeMove = null;
+      solver3D.animAngle = 0;
       solutionView.style.display = 'none';
       editorContainer.style.display = 'flex';
       setFace(currentFace);
