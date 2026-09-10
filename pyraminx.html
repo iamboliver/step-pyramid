@@ -1,0 +1,2345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step Pyramid — Pyraminx Solver</title>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --card-bg: rgba(20, 26, 46, 0.92);
+      --card-border: rgba(255, 255, 255, 0.14);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --blue: #2563eb;
+      --red: #ef4444;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --empty: #334155;
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 10%, #1a2342 0%, #0a0e1a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 1rem 3rem;
+    }
+
+    nav.app-nav {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(30, 36, 68, 0.75);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+    }
+
+    nav.app-nav a {
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    nav.app-nav a.active {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.25rem;
+      max-width: 720px;
+    }
+
+    h1 {
+      font-size: 2.35rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 40%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.35rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      line-height: 1.4;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 920px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    /* Side Navigation Bar */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      padding: 0.6rem 1rem;
+      border-radius: 18px;
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+    }
+
+    .side-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text);
+      padding: 0.55rem 1.1rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+
+    .side-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .side-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .side-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #fff;
+    }
+
+    .side-dots {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .dot.active {
+      background: var(--accent);
+      transform: scale(1.3);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* Color Palette Bar */
+    .color-panel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .color-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.45rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .color-chip.active-brush {
+      outline: 2px solid #fff;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .chip-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    .chip-blue .chip-swatch { background: var(--blue); }
+    .chip-red .chip-swatch { background: var(--red); }
+    .chip-green .chip-swatch { background: var(--green); }
+    .chip-yellow .chip-swatch { background: var(--yellow); }
+    .chip-cycle .chip-swatch { background: #cbd5e1; }
+
+    /* Dual Stage in Editor: 2D Face + 3D Reference */
+    .editor-layout {
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 1.25rem;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    @media (max-width: 780px) {
+      .editor-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stage {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    /* Orientation Edge Banners */
+    .edge-banner {
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 0.5rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    .bottom-alignment-alert {
+      background: rgba(239, 68, 68, 0.25);
+      border: 2px solid #ef4444;
+      color: #fca5a5;
+      font-weight: 800;
+      animation: pulseAlert 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
+    }
+
+    .pyramid-svg-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pyramid-svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5));
+    }
+
+    .triangle-segment {
+      cursor: pointer;
+      stroke: #0a0e1a;
+      stroke-width: 3px;
+      stroke-linejoin: round;
+      transition: fill 0.15s ease, filter 0.2s ease;
+    }
+
+    .triangle-segment:hover {
+      filter: brightness(1.3) drop-shadow(0 0 8px rgba(255,255,255,0.7));
+    }
+
+    /* 3D Side Preview Box */
+    .preview-3d-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+
+    .preview-3d-header {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .canvas-3d {
+      width: 280px;
+      height: 280px;
+      cursor: grab;
+      border-radius: 16px;
+      background: radial-gradient(circle at 50% 50%, rgba(30, 41, 69, 0.5), rgba(10, 14, 26, 0.8));
+    }
+
+    .canvas-3d:active {
+      cursor: grabbing;
+    }
+
+    .view-buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.35rem;
+      width: 100%;
+      margin-top: 0.75rem;
+    }
+
+    .view-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      padding: 0.4rem 0.2rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .view-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    /* Action Buttons */
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .btn {
+      padding: 0.75rem 1.4rem;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      user-select: none;
+    }
+
+    .btn-solve {
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      color: #fff;
+      font-size: 1.15rem;
+      padding: 0.85rem 2.2rem;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+    }
+
+    .btn-solve:hover {
+      transform: scale(1.04) translateY(-2px);
+      box-shadow: 0 6px 25px rgba(236, 72, 153, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .status-box {
+      width: 100%;
+      max-width: 680px;
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      font-size: 0.92rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+    }
+
+    /* Solution 3D Walkthrough View */
+    #solution-view {
+      display: none;
+      width: 100%;
+      max-width: 880px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 1.75rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .solution-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    .step-badge {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+
+    .instruction-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    /* Prominent Layer Depth Badge */
+    .layer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 1.4rem;
+      border-radius: 9999px;
+      font-weight: 900;
+      font-size: 1.15rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      margin-top: 0.2rem;
+    }
+
+    .layer-badge.layer-1 {
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      color: #fff;
+      box-shadow: 0 0 22px rgba(6, 182, 212, 0.6);
+    }
+
+    .layer-badge.layer-2 {
+      background: linear-gradient(135deg, #7c3aed, #c026d3);
+      color: #fff;
+      box-shadow: 0 0 22px rgba(192, 38, 211, 0.6);
+    }
+
+    .layer-badge.layer-3 {
+      background: linear-gradient(135deg, #ea580c, #f59e0b);
+      color: #fff;
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.6);
+    }
+
+    .solution-3d-stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      background: radial-gradient(circle at 50% 50%, rgba(26, 35, 66, 0.7), rgba(10, 14, 26, 0.9));
+      border-radius: 20px;
+      padding: 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .canvas-3d-large {
+      width: 500px;
+      height: 440px;
+      max-width: 100%;
+      cursor: grab;
+    }
+
+    .canvas-3d-large:active {
+      cursor: grabbing;
+    }
+
+    .turn-controls-bar {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.8rem;
+    }
+
+    .hint-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      padding: 1.15rem 1.4rem;
+      width: 100%;
+      max-width: 700px;
+      line-height: 1.55;
+      font-size: 1.02rem;
+    }
+
+    .hint-card strong {
+      color: #f8fafc;
+    }
+
+    .grip-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-top: 0.6rem;
+    }
+
+    .grip-num {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.85rem;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .step-controls {
+      display: flex;
+      gap: 1rem;
+      width: 100%;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      max-width: 700px;
+      height: 9px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #10b981);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* ---- Full move list ---- */
+    .move-list-panel {
+      width: 100%;
+      max-width: 700px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 0.9rem 1rem 1rem;
+    }
+
+    .move-list-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .move-list-title {
+      font-weight: 800;
+      font-size: 1rem;
+      color: #c4b5fd;
+    }
+
+    .move-list-toggle {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.3rem 0.7rem;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+
+    .move-list-toggle:hover { color: var(--text); background: rgba(255, 255, 255, 0.14); }
+
+    .move-list-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.7rem;
+    }
+
+    .move-stage + .move-stage { margin-top: 0.75rem; }
+
+    .move-stage-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 0.35rem;
+    }
+
+    .move-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .move-chip {
+      min-width: 2.6rem;
+      text-align: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 0.28rem 0.5rem;
+      border-radius: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .move-chip:hover { border-color: rgba(255, 255, 255, 0.4); color: #fff; }
+
+    .move-chip.done {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #6ee7b7;
+    }
+
+    .move-chip.current {
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      border-color: #fde047;
+      color: #fff;
+      box-shadow: 0 0 14px var(--accent-glow);
+      transform: scale(1.12);
+    }
+
+    .move-chip .chip-n {
+      display: block;
+      font-size: 0.6rem;
+      font-weight: 600;
+      opacity: 0.55;
+      line-height: 1;
+    }
+
+    .move-list-panel.compact .move-chip .chip-n { display: none; }
+
+    .win-banner {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #10b981;
+      text-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="app-nav">
+    <a href="index.html">🪐 Solar System</a>
+    <a href="pyraminx.html" class="active">🔺 Step Pyramid</a>
+  </nav>
+
+  <header>
+    <h1>Step Pyramid 🔺</h1>
+    <p class="subtitle">Colour in your Pyraminx, follow the turns, watch it solve. A step-by-step guide for the 4-layer (Master) Pyraminx.</p>
+  </header>
+
+  <div class="main-container" id="editor-container">
+    <!-- Side Switcher Navigation -->
+    <div class="nav-bar">
+      <button class="side-btn" id="prev-side-btn">◀ Prev Side</button>
+      
+      <div class="side-indicator">
+        <div class="side-title" id="side-label">Side 1 of 4: FRONT</div>
+        <div class="side-dots">
+          <span class="dot active" id="dot-0" title="Side 1: Front"></span>
+          <span class="dot" id="dot-1" title="Side 2: Left"></span>
+          <span class="dot" id="dot-2" title="Side 3: Right"></span>
+          <span class="dot" id="dot-3" title="Side 4: Bottom"></span>
+        </div>
+      </div>
+
+      <button class="side-btn" id="next-side-btn">Next Side ▶</button>
+    </div>
+
+    <!-- Color Palette -->
+    <div class="color-panel">
+      <div class="color-chip chip-blue" data-color="blue" title="Paint Blue">
+        <span class="chip-swatch"></span>
+        <span>Blue (<span id="count-blue">0</span>/16)</span>
+      </div>
+      <div class="color-chip chip-red" data-color="red" title="Paint Red">
+        <span class="chip-swatch"></span>
+        <span>Red (<span id="count-red">0</span>/16)</span>
+      </div>
+      <div class="color-chip chip-green" data-color="green" title="Paint Green">
+        <span class="chip-swatch"></span>
+        <span>Green (<span id="count-green">0</span>/16)</span>
+      </div>
+      <div class="color-chip chip-yellow" data-color="yellow" title="Paint Yellow">
+        <span class="chip-swatch"></span>
+        <span>Yellow (<span id="count-yellow">0</span>/16)</span>
+      </div>
+      <div class="color-chip chip-cycle active-brush" data-color="cycle" title="Click segment to cycle colors">
+        <span class="chip-swatch"></span>
+        <span>🔄 Cycle Mode</span>
+      </div>
+    </div>
+
+    <!-- Dual Layout: 2D Face Clicker + 3D Reference -->
+    <div class="editor-layout">
+      <!-- 2D Clickable Triangle Stage -->
+      <div class="stage">
+        <!-- Top Edge Alignment Indicator -->
+        <div class="edge-banner" id="top-edge-banner">
+          ▲ Apex: Top Tip
+        </div>
+
+        <div class="pyramid-svg-container">
+          <svg class="pyramid-svg" viewBox="0 0 500 440" id="face-svg">
+            <!-- 16 Triangles rendered via JavaScript -->
+          </svg>
+        </div>
+
+        <!-- Bottom Edge Alignment Indicator -->
+        <div class="edge-banner" id="bottom-edge-banner">
+          ▼ Bottom Edge: Connects to Bottom Side (Yellow)
+        </div>
+      </div>
+
+      <!-- 3D Mini View of Pyramid -->
+      <div class="preview-3d-box">
+        <div class="preview-3d-header">Interactive 3D Preview</div>
+        <canvas class="canvas-3d" id="editor-3d-canvas" width="280" height="280" title="Drag to spin pyramid"></canvas>
+        <div class="view-buttons-grid">
+          <button class="view-btn" data-cam="front">Front</button>
+          <button class="view-btn" data-cam="left">Left</button>
+          <button class="view-btn" data-cam="right">Right</button>
+          <button class="view-btn" data-cam="bottom">Bottom</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Box -->
+    <div class="status-box" id="status-box">
+      Total Colored: 0 of 64 segments. Click any segment to color it!
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-bar">
+      <button class="btn btn-solve" id="solve-btn">✨ Solve Pyraminx!</button>
+      <button class="btn btn-secondary" id="sample-btn" title="Load a solvable test scramble">🎲 Sample Scramble</button>
+      <button class="btn btn-secondary" id="preset-solved-btn" title="Fill all sides with solved colors">⭐ Solved Cube</button>
+      <button class="btn btn-secondary" id="clear-btn" title="Clear all colored segments">🗑️ Clear All</button>
+    </div>
+  </div>
+
+  <!-- 3D Step-by-Step Solver View -->
+  <div id="solution-view">
+    <div class="solution-header">
+      <div class="step-badge" id="step-badge">Step 1 of 6</div>
+      <h2 class="instruction-title" id="instruction-title">Turn the TOP CORNER Clockwise ↻</h2>
+      <div class="layer-badge layer-2" id="layer-badge">2️⃣ TWIST 2 LAYERS TOGETHER</div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+
+    <div class="move-list-panel" id="move-list-panel">
+      <div class="move-list-head">
+        <div class="move-list-title">📋 Your full list of moves</div>
+        <button class="move-list-toggle" id="copy-moves-btn" title="Copy the whole solution as text">📋 Copy notation</button>
+      </div>
+      <div class="move-list-sub" id="move-list-sub">Tap any move to jump to it.</div>
+      <div id="move-list-body"></div>
+    </div>
+
+    <div class="solution-3d-stage">
+      <canvas class="canvas-3d-large" id="solver-3d-canvas" width="500" height="440"></canvas>
+      
+      <div class="turn-controls-bar">
+        <button class="btn btn-secondary" id="replay-anim-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">🎬 Animate Move Again</button>
+        <button class="btn btn-secondary" id="reset-cam-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">🎥 Reset Camera</button>
+      </div>
+    </div>
+
+    <div class="hint-card">
+      <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem; color: #a855f7;">
+        🧭 Clear Step-by-Step Instructions:
+      </div>
+      <div class="grip-step">
+        <span class="grip-num">1</span>
+        <div id="starting-hold"><strong>Starting Hold:</strong> Hold your pyramid flat with the <strong>RED face in FRONT</strong> and the <strong>YELLOW face flat on the BOTTOM</strong>.</div>
+      </div>
+      <div class="grip-step">
+        <span class="grip-num">2</span>
+        <div id="layers-instruction"><strong>How Many Layers:</strong> <span style="color:#fde047; font-weight:800;">TWIST EXACTLY 2 LAYERS TOGETHER</span> (The top tip plus the 1 layer directly underneath it).</div>
+      </div>
+      <div class="grip-step">
+        <span class="grip-num">3</span>
+        <div id="grip-instruction"><strong>Where to Place Fingers:</strong> Grip both layers with your right hand as one solid unit. Hold the bottom 2 layers stationary with your left hand!</div>
+      </div>
+      <div class="grip-step">
+        <span class="grip-num">4</span>
+        <div id="turn-instruction"><strong>Twist Amount & Direction:</strong> Turn it <strong>EXACTLY 1 CLICK (120°) CLOCKWISE (to the right ↻)</strong> until it clicks into place.</div>
+      </div>
+    </div>
+
+    <div class="step-controls">
+      <button class="btn btn-secondary" id="prev-step-btn">◀ Previous Move</button>
+      <button class="btn btn-solve" id="next-step-btn">I've Done This Move! Next ▶</button>
+    </div>
+
+    <button class="btn btn-secondary" id="exit-solve-btn" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">✏️ Back to Edit Colors</button>
+  </div>
+
+  <script>
+    // Audio synth
+    let audioCtx = null;
+    function playBeep(freq = 520, duration = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    const COLOR_CYCLE = [null, 'blue', 'red', 'green', 'yellow'];
+    const COLOR_HEX = {
+      null: '#334155',
+      'blue': '#2563eb',
+      'red': '#ef4444',
+      'green': '#10b981',
+      'yellow': '#f59e0b'
+    };
+
+    const FACE_NAMES = ["Front", "Left", "Right", "Bottom"];
+
+    // Cube state: 4 faces x 16 tiles = 64 tiles
+    let cubeState = Array.from({ length: 4 }, () => Array(16).fill(null));
+    let currentFace = 0;
+    let selectedBrush = 'cycle';
+
+    // 2D SVG Geometry
+    const SVG_CENTER_X = 250;
+    const SVG_TOP_Y = 25;
+    const SIDE_LEN = 440;
+    const HEIGHT = SIDE_LEN * (Math.sqrt(3) / 2);
+    const S = SIDE_LEN / 4;
+    const H = HEIGHT / 4;
+
+    function compute2DTriangles() {
+      const triangles = [];
+      let tileIndex = 0;
+
+      for (let r = 0; r < 4; r++) {
+        const y1 = SVG_TOP_Y + r * H;
+        const y2 = SVG_TOP_Y + (r + 1) * H;
+        const count = 2 * r + 1;
+
+        for (let k = 0; k < count; k++) {
+          if (k % 2 === 0) {
+            const m = k / 2;
+            const px = SVG_CENTER_X - (r * S / 2) + (m * S);
+            const py = y1;
+            const blx = SVG_CENTER_X - ((r + 1) * S / 2) + (m * S);
+            const bly = y2;
+            const brx = blx + S;
+            const bry = y2;
+            triangles.push({
+              id: tileIndex++,
+              points: `${px.toFixed(1)},${py.toFixed(1)} ${brx.toFixed(1)},${bry.toFixed(1)} ${blx.toFixed(1)},${bly.toFixed(1)}`
+            });
+          } else {
+            const m = Math.floor(k / 2);
+            const tlx = SVG_CENTER_X - (r * S / 2) + (m * S);
+            const tly = y1;
+            const trx = tlx + S;
+            const try_ = y1;
+            const bpx = SVG_CENTER_X - ((r + 1) * S / 2) + ((m + 1) * S);
+            const bpy = y2;
+            triangles.push({
+              id: tileIndex++,
+              points: `${tlx.toFixed(1)},${tly.toFixed(1)} ${trx.toFixed(1)},${try_.toFixed(1)} ${bpx.toFixed(1)},${bpy.toFixed(1)}`
+            });
+          }
+        }
+      }
+      return triangles;
+    }
+
+    const TRIANGLE_2D = compute2DTriangles();
+
+    // 3D Geometry
+    const V_U = [0, 1.2247, 0];
+    const V_L = [-1, -0.4082, 0.5774];
+    const V_R = [1, -0.4082, 0.5774];
+    const V_B = [0, -0.4082, -1.1547];
+
+    const FACE_3D_VERTICES = [
+      [V_U, V_L, V_R], // Face 0: Front
+      [V_U, V_B, V_L], // Face 1: Left
+      [V_U, V_R, V_B], // Face 2: Right
+      [V_B, V_R, V_L]  // Face 3: Bottom (outward normal points downward)
+    ];
+
+    // Compute 3D triangles for all 64 tiles - SOLID, FILLED IN, NO BLACK GAPS!
+    function compute3DTiles() {
+      const tiles = [];
+
+      for (let f = 0; f < 4; f++) {
+        const [A, B, C] = FACE_3D_VERTICES[f];
+        let tileId = 0;
+
+        for (let r = 0; r < 4; r++) {
+          const count = 2 * r + 1;
+          for (let k = 0; k < count; k++) {
+            let p1, p2, p3;
+
+            if (k % 2 === 0) {
+              const m = k / 2;
+              p1 = interpolateBary(A, B, C, (4 - r) / 4, (r - m) / 4, m / 4);
+              p2 = interpolateBary(A, B, C, (3 - r) / 4, (r + 1 - m) / 4, m / 4);
+              p3 = interpolateBary(A, B, C, (3 - r) / 4, (r - m) / 4, (m + 1) / 4);
+            } else {
+              const m = Math.floor(k / 2);
+              // Winding order p1 -> p2 -> p3 matches upright triangle:
+              p1 = interpolateBary(A, B, C, (4 - r) / 4, (r - m) / 4, m / 4);
+              p2 = interpolateBary(A, B, C, (3 - r) / 4, (r - m) / 4, (m + 1) / 4);
+              p3 = interpolateBary(A, B, C, (4 - r) / 4, (r - (m + 1)) / 4, (m + 1) / 4);
+            }
+
+            const center = [
+              (p1[0] + p2[0] + p3[0]) / 3,
+              (p1[1] + p2[1] + p3[1]) / 3,
+              (p1[2] + p2[2] + p3[2]) / 3
+            ];
+
+            // Inset factor of 0.992 ensures tight, seamless solid faces with zero gaps!
+            const insetFactor = 0.992;
+            const v1 = [center[0] + (p1[0] - center[0]) * insetFactor, center[1] + (p1[1] - center[1]) * insetFactor, center[2] + (p1[2] - center[2]) * insetFactor];
+            const v2 = [center[0] + (p2[0] - center[0]) * insetFactor, center[1] + (p2[1] - center[1]) * insetFactor, center[2] + (p2[2] - center[2]) * insetFactor];
+            const v3 = [center[0] + (p3[0] - center[0]) * insetFactor, center[1] + (p3[1] - center[1]) * insetFactor, center[2] + (p3[2] - center[2]) * insetFactor];
+
+            tiles.push({
+              face: f,
+              tileId: tileId++,
+              v1, v2, v3, center
+            });
+          }
+        }
+      }
+
+      return tiles;
+    }
+
+    function interpolateBary(A, B, C, u, v, w) {
+      return [
+        u * A[0] + v * B[0] + w * C[0],
+        u * A[1] + v * B[1] + w * C[1],
+        u * A[2] + v * B[2] + w * C[2]
+      ];
+    }
+
+    const TILES_3D = compute3DTiles();
+
+    // 3D Canvas Rendering Engine
+    class Pyraminx3DRenderer {
+      constructor(canvas, initialScale = 150) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.rotX = 0.35;
+        this.rotY = -0.45;
+        this.scale = initialScale;
+        this.dist = 4.5;
+        this.animAngle = 0;
+        this.activeMove = null;
+        this.isDragging = false;
+        this.lastMouse = { x: 0, y: 0 };
+        this.highlightFace = -1;
+
+        this.initEvents();
+      }
+
+      initEvents() {
+        const c = this.canvas;
+        c.addEventListener('mousedown', (e) => {
+          this.isDragging = true;
+          this.lastMouse = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!this.isDragging) return;
+          const dx = e.clientX - this.lastMouse.x;
+          const dy = e.clientY - this.lastMouse.y;
+          this.rotY += dx * 0.012;
+          this.rotX += dy * 0.012;
+          this.lastMouse = { x: e.clientX, y: e.clientY };
+          this.render();
+        });
+
+        window.addEventListener('mouseup', () => {
+          this.isDragging = false;
+        });
+
+        // Touch support
+        c.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) {
+            this.isDragging = true;
+            this.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+          if (!this.isDragging || e.touches.length !== 1) return;
+          const dx = e.touches[0].clientX - this.lastMouse.x;
+          const dy = e.touches[0].clientY - this.lastMouse.y;
+          this.rotY += dx * 0.012;
+          this.rotX += dy * 0.012;
+          this.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          this.render();
+        });
+
+        window.addEventListener('touchend', () => {
+          this.isDragging = false;
+        });
+      }
+
+      setPresetCamera(name) {
+        switch(name) {
+          case 'front':
+            this.rotX = 0.15; this.rotY = 0; break;
+          case 'left':
+            this.rotX = 0.15; this.rotY = (2 * Math.PI / 3); break;
+          case 'right':
+            this.rotX = 0.15; this.rotY = -(2 * Math.PI / 3); break;
+          case 'bottom':
+            this.rotX = 1.45; this.rotY = 0; break;
+          case 'top':
+            this.rotX = -1.35; this.rotY = 0; break;
+        }
+        this.render();
+      }
+
+      rotateVertex(v, rotX, rotY) {
+        const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+        let x1 = v[0] * cosY + v[2] * sinY;
+        let y1 = v[1];
+        let z1 = -v[0] * sinY + v[2] * cosY;
+
+        const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+        let y2 = y1 * cosX - z1 * sinX;
+        let z2 = y1 * sinX + z1 * cosX;
+
+        return [x1, y2, z2];
+      }
+
+      project(v, w, h) {
+        const factor = this.scale / (v[2] + this.dist);
+        return [
+          w / 2 + v[0] * factor,
+          h / 2 - v[1] * factor
+        ];
+      }
+
+      render() {
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        this.ctx.clearRect(0, 0, w, h);
+
+        // Sort tiles by depth (Painter's algorithm)
+        const transformedTiles = TILES_3D.map(tile => {
+          let v1 = tile.v1;
+          let v2 = tile.v2;
+          let v3 = tile.v3;
+          let center = tile.center;
+
+          const inActiveTurn = this.activeMove && isTileInMove(tile, this.activeMove);
+
+          // Apply rotation animation if active
+          if (inActiveTurn && this.animAngle !== 0) {
+            const axis = getMoveAxis(this.activeMove);
+            v1 = rotateAroundAxis(v1, axis, this.animAngle);
+            v2 = rotateAroundAxis(v2, axis, this.animAngle);
+            v3 = rotateAroundAxis(v3, axis, this.animAngle);
+            center = rotateAroundAxis(center, axis, this.animAngle);
+          }
+
+          const tv1 = this.rotateVertex(v1, this.rotX, this.rotY);
+          const tv2 = this.rotateVertex(v2, this.rotX, this.rotY);
+          const tv3 = this.rotateVertex(v3, this.rotX, this.rotY);
+          const tCenter = this.rotateVertex(center, this.rotX, this.rotY);
+
+          // Normal vector for 3D lighting & culling
+          const ux = tv2[0] - tv1[0], uy = tv2[1] - tv1[1], uz = tv2[2] - tv1[2];
+          const vx = tv3[0] - tv1[0], vy = tv3[1] - tv1[1], vz = tv3[2] - tv1[2];
+          const nx = uy * vz - uz * vy;
+          const ny = uz * vx - ux * vz;
+          const nz = ux * vy - uy * vx;
+          const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz) || 1;
+
+          // Realistic 3D directional lighting
+          const lx = 0.35, ly = 0.65, lz = 0.67;
+          const dot = Math.max(0, (nx*lx + ny*ly + nz*lz) / nLen);
+          const shade = 0.80 + 0.20 * dot;
+
+          return {
+            tile,
+            p1: this.project(tv1, w, h),
+            p2: this.project(tv2, w, h),
+            p3: this.project(tv3, w, h),
+            depth: tCenter[2],
+            isFacingFront: nz > -0.05,
+            shade,
+            inActiveTurn
+          };
+        });
+
+        transformedTiles.sort((a, b) => b.depth - a.depth);
+
+        // Draw triangles
+        transformedTiles.forEach(item => {
+          if (!item.isFacingFront) return;
+
+          const colorKey = cubeState[item.tile.face][item.tile.tileId];
+          const baseColor = COLOR_HEX[colorKey] || '#334155';
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(item.p1[0], item.p1[1]);
+          this.ctx.lineTo(item.p2[0], item.p2[1]);
+          this.ctx.lineTo(item.p3[0], item.p3[1]);
+          this.ctx.closePath();
+
+          this.ctx.fillStyle = applyShade(baseColor, item.shade);
+          this.ctx.fill();
+
+          // Stroke: Highlight rotating layer in golden yellow
+          if (item.inActiveTurn) {
+            this.ctx.strokeStyle = '#fde047';
+            this.ctx.lineWidth = 3.5;
+            this.ctx.stroke();
+
+            // Subtle bright gloss on turning layer
+            this.ctx.fillStyle = 'rgba(254, 240, 138, 0.15)';
+            this.ctx.fill();
+          } else {
+            this.ctx.strokeStyle = '#0f172a';
+            this.ctx.lineWidth = 1.8;
+            this.ctx.stroke();
+          }
+
+          if (this.highlightFace === item.tile.face) {
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            this.ctx.fill();
+          }
+        });
+
+        // 3D Directional Turn Arrow
+        if (this.activeMove) {
+          this.drawTurnArrow(w, h);
+        }
+      }
+
+      drawTurnArrow(w, h) {
+        const axis = getMoveAxis(this.activeMove);
+        const tAxis = this.rotateVertex(axis, this.rotX, this.rotY);
+        const isClockwise = !this.activeMove.endsWith("'");
+
+        const radius = this.scale * 0.32;
+        const center = [w / 2 + tAxis[0] * (this.scale * 0.28), h / 2 - tAxis[1] * (this.scale * 0.28)];
+
+        this.ctx.save();
+        this.ctx.strokeStyle = '#fde047';
+        this.ctx.shadowColor = '#f59e0b';
+        this.ctx.shadowBlur = 18;
+        this.ctx.lineWidth = 4.5;
+
+        this.ctx.beginPath();
+        const startAng = isClockwise ? 0.1 : Math.PI;
+        const endAng = isClockwise ? 1.6 * Math.PI : 2.5 * Math.PI;
+        this.ctx.arc(center[0], center[1], radius, startAng, endAng, !isClockwise);
+        this.ctx.stroke();
+
+        // Arrowhead
+        this.ctx.fillStyle = '#fde047';
+        this.ctx.beginPath();
+        const arrowX = center[0] + Math.cos(endAng) * radius;
+        const arrowY = center[1] + Math.sin(endAng) * radius;
+        this.ctx.arc(arrowX, arrowY, 7.5, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+      }
+    }
+
+    function applyShade(hex, shade) {
+      if (!hex.startsWith('#')) return hex;
+      let r = parseInt(hex.slice(1, 3), 16);
+      let g = parseInt(hex.slice(3, 5), 16);
+      let b = parseInt(hex.slice(5, 7), 16);
+
+      r = Math.min(255, Math.floor(r * shade));
+      g = Math.min(255, Math.floor(g * shade));
+      b = Math.min(255, Math.floor(b * shade));
+
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Determine corner axis
+    function getMoveAxis(move) {
+      if (move.startsWith('U') || move.startsWith('u')) return V_U;
+      if (move.startsWith('L') || move.startsWith('l')) return V_L;
+      if (move.startsWith('R') || move.startsWith('r')) return V_R;
+      if (move.startsWith('B') || move.startsWith('b')) return V_B;
+      return V_U;
+    }
+
+    // MATHEMATICALLY PRECISE 3D LAYER MEMBERSHIP:
+    // Uses the distance of each tile along the corner axis to identify 1-layer, 2-layer, and 3-layer moves!
+    function isTileInMove(tile, move) {
+      const axis = getMoveAxis(move);
+      const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+      const u = [axis[0]/axisLen, axis[1]/axisLen, axis[2]/axisLen];
+
+      // Project centroid along the corner axis
+      const c = tile.center;
+      const proj = c[0]*u[0] + c[1]*u[1] + c[2]*u[2];
+
+      const H_max = axisLen; // ~1.2247
+      const H_min = -axisLen / 3; // ~ -0.4082
+      const H = H_max - H_min; // ~1.633
+
+      // Fraction from corner apex: 0.0 at tip, 1.0 at opposite base
+      const frac = (H_max - proj) / H;
+
+      // 1 Layer: Just the Tip (frac < 0.25)
+      if (move.startsWith('u') || move.startsWith('l') || move.startsWith('r') || move.startsWith('b')) {
+        return frac < 0.25;
+      }
+
+      // 2 Layers: Corner + 1 row underneath (frac < 0.50)
+      if (move.startsWith('U') || move.startsWith('L') || move.startsWith('R') || move.startsWith('B')) {
+        if (move.includes('w')) {
+          // 3 Layers: Wide Turn (frac < 0.75)
+          return frac < 0.75;
+        }
+        return frac < 0.50;
+      }
+
+      return false;
+    }
+
+    function rotateAroundAxis(v, axis, angle) {
+      const len = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+      const u = [axis[0]/len, axis[1]/len, axis[2]/len];
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const dot = v[0]*u[0] + v[1]*u[1] + v[2]*u[2];
+
+      return [
+        u[0] * dot * (1 - cos) + v[0] * cos + (-u[2]*v[1] + u[1]*v[2]) * sin,
+        u[1] * dot * (1 - cos) + v[1] * cos + (u[2]*v[0] - u[0]*v[2]) * sin,
+        u[2] * dot * (1 - cos) + v[2] * cos + (-u[1]*v[0] + u[0]*v[1]) * sin
+      ];
+    }
+
+    // Initialize 3D Renderers (Large, prominent scale!)
+    const editorCanvas = document.getElementById('editor-3d-canvas');
+    const editor3D = new Pyraminx3DRenderer(editorCanvas, 480);
+    editor3D.setPresetCamera('front');
+
+    const solverCanvas = document.getElementById('solver-3d-canvas');
+    const solver3D = new Pyraminx3DRenderer(solverCanvas, 750); // Massive, clear 3D pyramid!
+    solver3D.setPresetCamera('front');
+
+    // Camera buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editor3D.setPresetCamera(btn.getAttribute('data-cam'));
+      });
+    });
+
+    // 2D SVG Face Init
+    const faceSvg = document.getElementById('face-svg');
+    function init2DSvg() {
+      faceSvg.innerHTML = '';
+      TRIANGLE_2D.forEach(tri => {
+        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polygon.setAttribute('points', tri.points);
+        polygon.setAttribute('class', 'triangle-segment');
+        polygon.setAttribute('data-id', tri.id);
+        polygon.setAttribute('fill', COLOR_HEX[cubeState[currentFace][tri.id]]);
+
+        polygon.addEventListener('click', () => onSegmentClick(tri.id));
+        faceSvg.appendChild(polygon);
+      });
+    }
+
+    function update2DSvgColors() {
+      const polygons = faceSvg.querySelectorAll('polygon');
+      polygons.forEach((poly, idx) => {
+        poly.setAttribute('fill', COLOR_HEX[cubeState[currentFace][idx]]);
+      });
+    }
+
+    function onSegmentClick(tileId) {
+      let currentColor = cubeState[currentFace][tileId];
+      let newColor = null;
+
+      if (selectedBrush === 'cycle') {
+        const nextIdx = (COLOR_CYCLE.indexOf(currentColor) + 1) % COLOR_CYCLE.length;
+        newColor = COLOR_CYCLE[nextIdx];
+      } else {
+        newColor = (currentColor === selectedBrush) ? null : selectedBrush;
+      }
+
+      cubeState[currentFace][tileId] = newColor;
+      knownScrambleSequence = [];
+      playBeep(newColor ? 440 + COLOR_CYCLE.indexOf(newColor) * 60 : 320);
+      update2DSvgColors();
+      editor3D.render();
+      updateTally();
+    }
+
+    // Side Navigation
+    function setFace(faceIndex) {
+      currentFace = (faceIndex + 4) % 4;
+      document.getElementById('side-label').textContent = `Side ${currentFace + 1} of 4: ${FACE_NAMES[currentFace].toUpperCase()}`;
+
+      for (let i = 0; i < 4; i++) {
+        document.getElementById(`dot-${i}`).classList.toggle('active', i === currentFace);
+      }
+
+      const topBanner = document.getElementById('top-edge-banner');
+      const bottomBanner = document.getElementById('bottom-edge-banner');
+
+      if (currentFace === 3) {
+        // SIDE 4: BOTTOM FACE
+        topBanner.className = 'edge-banner';
+        topBanner.innerHTML = "▲ Apex: Points towards BACK (Side 2 & 3 meeting corner)";
+
+        bottomBanner.className = 'edge-banner bottom-alignment-alert';
+        bottomBanner.innerHTML = "🚨 ALIGNS WITH FRONT SIDE (Side 1) ⬆️ (Connects directly to the Front face!)";
+
+        editor3D.setPresetCamera('bottom');
+      } else {
+        topBanner.className = 'edge-banner';
+        topBanner.innerHTML = "▲ Apex: Top Corner Tip";
+
+        bottomBanner.className = 'edge-banner';
+        bottomBanner.innerHTML = "▼ Bottom Edge: Connects to Bottom Side (Side 4 - Yellow)";
+
+        if (currentFace === 0) editor3D.setPresetCamera('front');
+        if (currentFace === 1) editor3D.setPresetCamera('left');
+        if (currentFace === 2) editor3D.setPresetCamera('right');
+      }
+
+      editor3D.highlightFace = currentFace;
+      editor3D.render();
+      update2DSvgColors();
+    }
+
+    document.getElementById('prev-side-btn').addEventListener('click', () => {
+      playBeep(380);
+      setFace(currentFace - 1);
+    });
+
+    document.getElementById('next-side-btn').addEventListener('click', () => {
+      playBeep(420);
+      setFace(currentFace + 1);
+    });
+
+    for (let i = 0; i < 4; i++) {
+      document.getElementById(`dot-${i}`).addEventListener('click', () => {
+        playBeep(400);
+        setFace(i);
+      });
+    }
+
+    // Brush Chips
+    document.querySelectorAll('.color-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.color-chip').forEach(c => c.classList.remove('active-brush'));
+        chip.classList.add('active-brush');
+        selectedBrush = chip.getAttribute('data-color');
+        playBeep(500);
+      });
+    });
+
+    // Tally & Validation
+    function updateTally() {
+      const counts = { 'blue': 0, 'red': 0, 'green': 0, 'yellow': 0, null: 0 };
+      for (let f = 0; f < 4; f++) {
+        for (let t = 0; t < 16; t++) {
+          counts[cubeState[f][t]]++;
+        }
+      }
+
+      document.getElementById('count-blue').textContent = counts['blue'];
+      document.getElementById('count-red').textContent = counts['red'];
+      document.getElementById('count-green').textContent = counts['green'];
+      document.getElementById('count-yellow').textContent = counts['yellow'];
+
+      const totalColored = 64 - counts[null];
+      const statusBox = document.getElementById('status-box');
+
+      if (totalColored === 64) {
+        if (counts['blue'] === 16 && counts['red'] === 16 && counts['green'] === 16 && counts['yellow'] === 16) {
+          statusBox.innerHTML = "✅ <strong>Ready to solve!</strong> All 64 segments are filled (16 of each color). Click 'Solve Pyraminx!'";
+          statusBox.style.color = '#34d399';
+        } else {
+          statusBox.innerHTML = `⚠️ <strong>Color count mismatch:</strong> Need 16 of each color. (Blue:${counts['blue']}, Red:${counts['red']}, Green:${counts['green']}, Yellow:${counts['yellow']})`;
+          statusBox.style.color = '#f87171';
+        }
+      } else {
+        statusBox.innerHTML = `Total Colored: ${totalColored} of 64 segments. Keep coloring!`;
+        statusBox.style.color = '#cbd5e1';
+      }
+    }
+
+    // Helper Presets
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      if (confirm("Reset all segments to empty?")) {
+        cubeState = Array.from({ length: 4 }, () => Array(16).fill(null));
+        knownScrambleSequence = [];
+        update2DSvgColors();
+        editor3D.render();
+        updateTally();
+        playBeep(300);
+      }
+    });
+
+    function setSolvedState() {
+      knownScrambleSequence = [];
+      const faceColors = ['red', 'blue', 'green', 'yellow'];
+      for (let f = 0; f < 4; f++) {
+        cubeState[f] = Array(16).fill(faceColors[f]);
+      }
+      update2DSvgColors();
+      editor3D.render();
+      updateTally();
+      playBeep(650);
+    }
+
+    document.getElementById('preset-solved-btn').addEventListener('click', setSolvedState);
+
+    // Precomputed 3D Mathematically Exact Move Permutations
+    const MOVE_DEFS = {
+      "u": [V_U, 0.25, 2*Math.PI/3], "u'": [V_U, 0.25, -2*Math.PI/3],
+      "U": [V_U, 0.50, 2*Math.PI/3], "U'": [V_U, 0.50, -2*Math.PI/3],
+      "Uw": [V_U, 0.75, 2*Math.PI/3], "Uw'": [V_U, 0.75, -2*Math.PI/3],
+      "l": [V_L, 0.25, 2*Math.PI/3], "l'": [V_L, 0.25, -2*Math.PI/3],
+      "L": [V_L, 0.50, 2*Math.PI/3], "L'": [V_L, 0.50, -2*Math.PI/3],
+      "Lw": [V_L, 0.75, 2*Math.PI/3], "Lw'": [V_L, 0.75, -2*Math.PI/3],
+      "r": [V_R, 0.25, 2*Math.PI/3], "r'": [V_R, 0.25, -2*Math.PI/3],
+      "R": [V_R, 0.50, 2*Math.PI/3], "R'": [V_R, 0.50, -2*Math.PI/3],
+      "Rw": [V_R, 0.75, 2*Math.PI/3], "Rw'": [V_R, 0.75, -2*Math.PI/3],
+      "b": [V_B, 0.25, 2*Math.PI/3], "b'": [V_B, 0.25, -2*Math.PI/3],
+      "B": [V_B, 0.50, 2*Math.PI/3], "B'": [V_B, 0.50, -2*Math.PI/3],
+      "Bw": [V_B, 0.75, 2*Math.PI/3], "Bw'": [V_B, 0.75, -2*Math.PI/3]
+    };
+
+    function computeMovePerm(axis, maxFrac, angle) {
+      const perm = Array.from({length: 64}, (_, i) => i);
+      const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+      const u = [axis[0]/axisLen, axis[1]/axisLen, axis[2]/axisLen];
+      const H_max = axisLen;
+      const H = axisLen * 4 / 3;
+
+      TILES_3D.forEach((t, idx) => {
+        const proj = t.center[0]*u[0] + t.center[1]*u[1] + t.center[2]*u[2];
+        const frac = (H_max - proj) / H;
+        if (frac < maxFrac) {
+          const rot = rotateAroundAxis(t.center, axis, angle);
+          let closestIdx = -1, minDist = 1e9;
+          TILES_3D.forEach((target, tidx) => {
+            const d = Math.hypot(rot[0] - target.center[0], rot[1] - target.center[1], rot[2] - target.center[2]);
+            if (d < minDist) { minDist = d; closestIdx = tidx; }
+          });
+          perm[idx] = closestIdx;
+        }
+      });
+      return perm;
+    }
+
+    const MOVE_PERMS = {};
+    for (const [m, args] of Object.entries(MOVE_DEFS)) {
+      MOVE_PERMS[m] = computeMovePerm(...args);
+    }
+
+    function cloneState(st) {
+      return st.map(f => [...f]);
+    }
+
+    function applyMove(st, move) {
+      const p = MOVE_PERMS[move];
+      if (!p) return cloneState(st);
+
+      const flat = new Array(64);
+      for (let f = 0; f < 4; f++) {
+        for (let t = 0; t < 16; t++) {
+          flat[f * 16 + t] = st[f][t];
+        }
+      }
+
+      const nextFlat = new Array(64);
+      for (let i = 0; i < 64; i++) {
+        nextFlat[p[i]] = flat[i];
+      }
+
+      const next = Array.from({ length: 4 }, () => new Array(16));
+      for (let f = 0; f < 4; f++) {
+        for (let t = 0; t < 16; t++) {
+          next[f][t] = nextFlat[f * 16 + t];
+        }
+      }
+      return next;
+    }
+
+    function invertMove(m) {
+      return m.endsWith("'") ? m.slice(0, -1) : m + "'";
+    }
+
+    // Moves on the same axis commute, so a token can hop over other moves on
+    // that axis to merge with a matching one. Turns are 120 deg: X X == X'.
+    function parseMoveToken(m) {
+      const prime = m.endsWith("'");
+      const body = prime ? m.slice(0, -1) : m;
+      const wide = body.endsWith('w');
+      const letter = wide ? body.slice(0, -1) : body;
+      return {
+        axis: letter.toUpperCase(),
+        width: wide ? 3 : (letter === letter.toLowerCase() ? 1 : 2),
+        amt: prime ? 2 : 1
+      };
+    }
+    function formatMoveToken(t) {
+      if (t.amt % 3 === 0) return null;
+      let base = t.width === 1 ? t.axis.toLowerCase() : t.axis;
+      if (t.width === 3) base += 'w';
+      return t.amt % 3 === 1 ? base : base + "'";
+    }
+    function simplifyMoves(moves) {
+      let toks = moves.map(parseMoveToken);
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (let i = 0; i < toks.length; i++) {
+          if (!toks[i]) continue;
+          for (let j = i + 1; j < toks.length; j++) {
+            if (!toks[j]) continue;
+            if (toks[j].axis !== toks[i].axis) break;      // different axis: does not commute
+            if (toks[j].width !== toks[i].width) continue; // same axis, different width: commutes
+            const amt = (toks[i].amt + toks[j].amt) % 3;
+            toks[i] = amt === 0 ? null : { axis: toks[i].axis, width: toks[i].width, amt };
+            toks[j] = null;
+            changed = true;
+            break;
+          }
+        }
+        toks = toks.filter(Boolean);
+      }
+      return toks.map(formatMoveToken).filter(Boolean);
+    }
+
+    let knownScrambleSequence = [];
+    document.getElementById('sample-btn').addEventListener('click', () => {
+      setSolvedState();
+      const scramblePool = ['U', "U'", 'R', "R'", 'L', "L'", 'B', "B'", 'Uw', "Uw'", 'Rw', "Rw'", 'u', "u'", 'r', "r'", 'l', "l'", 'b', "b'"];
+      knownScrambleSequence = [];
+      const numMoves = 8 + Math.floor(Math.random() * 4); // 8-11 realistic physical turns
+
+      for (let i = 0; i < numMoves; i++) {
+        const move = scramblePool[Math.floor(Math.random() * scramblePool.length)];
+        knownScrambleSequence.push(move);
+        cubeState = applyMove(cubeState, move);
+      }
+
+      update2DSvgColors();
+      editor3D.render();
+      updateTally();
+      alert(`🎲 Scrambled with ${numMoves} real physical turns! Click 'Solve Pyraminx!' to see the full multi-step solution.`);
+    });
+
+    // ============================================================
+    //  SOLVER ENGINE
+    //  Piece model derived from the 3D geometry: every sticker's
+    //  layer index along each of the 4 corner axes identifies the
+    //  physical piece it sits on. That yields 30 pieces:
+    //    4 tips, 4 corners, 4 centers, 6 middle edges, 12 wings.
+    //  Which moves touch what:
+    //    tip turn (u)   -> 1 tip only
+    //    corner turn(U) -> tip + corner + 3 wings           (never centers/middles)
+    //    wide turn (Uw) -> tip + corner + 6 wings + 3 middles + 3 centers
+    //  A slice  Us = Uw U'  turns layer 3 alone: it moves wings,
+    //  middles and centers but leaves every tip and corner alone.
+    //  That gives a clean 4-stage solve, each stage preserving the
+    //  previous ones.
+    // ============================================================
+
+    const AXIS_LETTERS = ['U', 'L', 'R', 'B'];
+    const AXIS_VECTORS = [V_U, V_L, V_R, V_B];
+
+    function layerIndexAlong(center, axis) {
+      const len = Math.hypot(axis[0], axis[1], axis[2]);
+      const u = [axis[0] / len, axis[1] / len, axis[2] / len];
+      const proj = center[0] * u[0] + center[1] * u[1] + center[2] * u[2];
+      const frac = (len - proj) / (len * 4 / 3);
+      return Math.min(3, Math.floor(frac * 4 + 1e-6));
+    }
+
+    // Signature -> piece id. Stickers sharing a signature share a physical piece.
+    const PIECE_OF_STICKER = new Array(64);
+    const PIECE_STICKERS = [];
+    const PIECE_SIG = [];
+    {
+      const seen = {};
+      TILES_3D.forEach((tile, idx) => {
+        const sig = AXIS_VECTORS.map(a => layerIndexAlong(tile.center, a)).join('');
+        if (seen[sig] === undefined) {
+          seen[sig] = PIECE_STICKERS.length;
+          PIECE_STICKERS.push([]);
+          PIECE_SIG.push(sig);
+        }
+        PIECE_OF_STICKER[idx] = seen[sig];
+        PIECE_STICKERS[seen[sig]].push(idx);
+      });
+    }
+
+    const PIECE_TYPE = PIECE_SIG.map((sig, i) => {
+      if (sig.includes('0')) return 'tip';
+      if (PIECE_STICKERS[i].length === 1) return 'center';
+      if (PIECE_STICKERS[i].length === 3) return 'corner';
+      return sig.includes('1') ? 'wing' : 'middle';
+    });
+
+    const piecesOfType = t => PIECE_TYPE.map((x, i) => x === t ? i : -1).filter(i => i >= 0);
+    const CORNER_PIECES = piecesOfType('corner');
+    const TIP_PIECES = piecesOfType('tip');
+    const CENTER_PIECES = piecesOfType('center');
+    const MIDDLE_PIECES = piecesOfType('middle');
+    const WING_PIECES = piecesOfType('wing');
+
+    // The axis a tip/corner belongs to is where its layer index is 0 / 1.
+    function axisLetterOfPiece(p) {
+      const sig = PIECE_SIG[p];
+      for (let a = 0; a < 4; a++) if (sig[a] === '0' || sig[a] === '1') return AXIS_LETTERS[a];
+      return null;
+    }
+    const CORNER_AXIS = {}, TIP_AXIS = {};
+    CORNER_PIECES.forEach(p => CORNER_AXIS[p] = axisLetterOfPiece(p));
+    TIP_PIECES.forEach(p => TIP_AXIS[p] = axisLetterOfPiece(p).toLowerCase());
+
+    const faceOfSticker = i => Math.floor(i / 16);
+
+    // ---- flat sticker helpers (a flat state is a 64-entry colour array) ----
+    function stateToFlat(st) {
+      const flat = new Array(64);
+      for (let f = 0; f < 4; f++) for (let t = 0; t < 16; t++) flat[f * 16 + t] = st[f][t];
+      return flat;
+    }
+    function flatToState(flat) {
+      const st = Array.from({ length: 4 }, () => new Array(16));
+      for (let f = 0; f < 4; f++) for (let t = 0; t < 16; t++) st[f][t] = flat[f * 16 + t];
+      return st;
+    }
+    function applyFlatMove(flat, move) {
+      const p = MOVE_PERMS[move];
+      if (!p) return flat.slice();
+      const next = new Array(64);
+      for (let i = 0; i < 64; i++) next[p[i]] = flat[i];
+      return next;
+    }
+    function permOfSequence(seq) {
+      let p = Array.from({ length: 64 }, (_, i) => i);
+      for (const m of seq) {
+        const q = MOVE_PERMS[m], r = new Array(64);
+        for (let i = 0; i < 64; i++) r[i] = q[p[i]];
+        p = r;
+      }
+      return p;
+    }
+
+    // ---- slice moves: Us = Uw U' turns layer 3 only ----
+    const SLICE_EXPAND = {};
+    for (const ax of AXIS_LETTERS) {
+      SLICE_EXPAND[ax + 's'] = [ax + 'w', ax + "'"];
+      SLICE_EXPAND[ax + "s'"] = [ax, ax + "w'"];
+    }
+    const expandSlices = seq => seq.reduce((o, m) => (o.push(...(SLICE_EXPAND[m] || [m])), o), []);
+    const SLICE_MOVES = Object.keys(SLICE_EXPAND);
+    const SLICE_PERM = {};
+    for (const m of SLICE_MOVES) SLICE_PERM[m] = permOfSequence(SLICE_EXPAND[m]);
+
+    // ---- stage 1 lookup table: centers + middles under slice moves ----
+    // 16 stickers, 138,240 reachable states, solvable in <= 10 slice turns.
+    const CM_STICKERS = [];
+    for (let i = 0; i < 64; i++) {
+      const t = PIECE_TYPE[PIECE_OF_STICKER[i]];
+      if (t === 'center' || t === 'middle') CM_STICKERS.push(i);
+    }
+    const CM_SLOT = {};
+    CM_STICKERS.forEach((v, k) => CM_SLOT[v] = k);
+    const CM_GEN = {};
+    for (const m of SLICE_MOVES) CM_GEN[m] = CM_STICKERS.map(i => CM_SLOT[SLICE_PERM[m][i]]);
+
+    let CM_TABLE = null;
+    const encodeCM = a => String.fromCharCode.apply(null, a);
+    function buildCMTable() {
+      const start = CM_STICKERS.map((_, k) => k);
+      const table = new Map([[encodeCM(start), null]]);
+      let frontier = [start];
+      while (frontier.length) {
+        const next = [];
+        for (const s of frontier) {
+          for (const m of SLICE_MOVES) {
+            const g = CM_GEN[m], n = new Array(16);
+            for (let i = 0; i < 16; i++) n[g[i]] = s[i];
+            const k = encodeCM(n);
+            if (!table.has(k)) { table.set(k, m); next.push(n); }
+          }
+        }
+        frontier = next;
+      }
+      CM_TABLE = table;
+    }
+
+    // ---- wing algorithms: commutators that 3-cycle wings and touch nothing else ----
+    const ALG_POOL = ['U', "U'", 'L', "L'", 'R', "R'", 'B', "B'"].concat(SLICE_MOVES);
+    const ALG_PERM = {};
+    for (const m of ALG_POOL) ALG_PERM[m] = SLICE_PERM[m] || MOVE_PERMS[m];
+
+    function permEffect(p) {
+      const moved = { tip: [], corner: [], center: [], middle: [], wing: [] };
+      const note = i => {
+        const pc = PIECE_OF_STICKER[i], t = PIECE_TYPE[pc];
+        if (!moved[t].includes(pc)) moved[t].push(pc);
+      };
+      for (let i = 0; i < 64; i++) if (p[i] !== i) { note(i); note(p[i]); }
+      return moved;
+    }
+
+    const WING_ALGS = [];
+    for (const x of ALG_POOL) for (const y of ALG_POOL) {
+      if (x === y || x === invertMove(y)) continue;
+      const seq = [x, y, invertMove(x), invertMove(y)];
+      let p = Array.from({ length: 64 }, (_, i) => i);
+      for (const m of seq) { const q = ALG_PERM[m], r = new Array(64); for (let i = 0; i < 64; i++) r[i] = q[p[i]]; p = r; }
+      const e = permEffect(p);
+      if (!e.corner.length && !e.center.length && !e.middle.length && !e.tip.length && e.wing.length) {
+        WING_ALGS.push({ seq, perm: p });
+      }
+    }
+    const WING_STICKERS = [];
+    for (let i = 0; i < 64; i++) if (PIECE_TYPE[PIECE_OF_STICKER[i]] === 'wing') WING_STICKERS.push(i);
+    const WING_SLOT = {};
+    WING_STICKERS.forEach((v, k) => WING_SLOT[v] = k);
+    const WING_GENS = WING_ALGS.map(a => ({
+      seq: a.seq,
+      g: WING_STICKERS.map(i => WING_SLOT[a.perm[i]])
+    }));
+
+    // ---- target colours ----
+    // Corner pieces never swap places on a Pyraminx, they only twist. The corner
+    // opposite face f shows the three colours that are NOT f's, so the leftover
+    // colour is f's. This works no matter how the user was holding the puzzle.
+    function deriveTargetFaceColors(flat) {
+      const target = new Array(4).fill(null);
+      const allColors = new Set(flat.filter(Boolean));
+      if (allColors.size !== 4) return null;
+      for (let f = 0; f < 4; f++) {
+        const corner = CORNER_PIECES.find(pc => !PIECE_STICKERS[pc].some(i => faceOfSticker(i) === f));
+        if (corner === undefined) return null;
+        const covered = new Set(PIECE_STICKERS[corner].map(i => flat[i]));
+        if (covered.size !== 3) return null;
+        const rest = [...allColors].filter(c => !covered.has(c));
+        if (rest.length !== 1) return null;
+        target[f] = rest[0];
+      }
+      return new Set(target).size === 4 ? target : null;
+    }
+    const stickerTargets = target => Array.from({ length: 64 }, (_, i) => target[faceOfSticker(i)]);
+
+    function piecesMatch(flat, tgt, type) {
+      for (const p of piecesOfType(type)) for (const i of PIECE_STICKERS[p]) if (flat[i] !== tgt[i]) return false;
+      return true;
+    }
+    function allMatch(flat, tgt) {
+      for (let i = 0; i < 64; i++) if (flat[i] !== tgt[i]) return false;
+      return true;
+    }
+
+    // Cube is solved when every face is one solid colour.
+    function isCubeSolved(st) {
+      for (let f = 0; f < 4; f++) {
+        const color = st[f][0];
+        if (!color) return false;
+        for (let t = 1; t < 16; t++) if (st[f][t] !== color) return false;
+      }
+      return true;
+    }
+
+    // ---- stage 1: centers + middles ----
+    function centerMiddleLabels(flat, target) {
+      const state = new Array(16).fill(-1);
+      const homes = CENTER_PIECES.concat(MIDDLE_PIECES);
+      for (const p of homes) {
+        const stickers = PIECE_STICKERS[p];
+        const faces = stickers.map(i => target.indexOf(flat[i]));
+        if (faces.some(f => f < 0)) return null;
+        const key = faces.slice().sort().join(',');
+        const home = homes.find(q => PIECE_STICKERS[q].map(faceOfSticker).sort().join(',') === key);
+        if (home === undefined) return null;
+        for (let k = 0; k < stickers.length; k++) {
+          const dst = PIECE_STICKERS[home].find(i => faceOfSticker(i) === faces[k]);
+          if (dst === undefined) return null;
+          state[CM_SLOT[stickers[k]]] = CM_SLOT[dst];
+        }
+      }
+      return state.some(x => x < 0) ? null : state;
+    }
+
+    function solveCentersMiddles(labels) {
+      if (!CM_TABLE) buildCMTable();
+      let s = labels.slice();
+      const out = [];
+      for (let guard = 0; guard < 40; guard++) {
+        const stored = CM_TABLE.get(encodeCM(s));
+        if (stored === undefined) return null;
+        if (stored === null) return out;
+        const back = invertMove(stored);
+        const g = CM_GEN[back], n = new Array(16);
+        for (let i = 0; i < 16; i++) n[g[i]] = s[i];
+        out.push(back);
+        s = n;
+      }
+      return null;
+    }
+
+    // ---- stage 2 / 4: corners and tips (one twist each, at most) ----
+    function solveTwistables(flat, tgt, pieces, axisMap) {
+      const moves = [];
+      let cur = flat;
+      for (const p of pieces) {
+        if (PIECE_STICKERS[p].every(i => cur[i] === tgt[i])) continue;
+        const ax = axisMap[p];
+        let done = false;
+        for (const m of [ax, ax + "'"]) {
+          const t = applyFlatMove(cur, m);
+          if (PIECE_STICKERS[p].every(i => t[i] === tgt[i])) { moves.push(m); cur = t; done = true; break; }
+        }
+        if (!done) return null;
+      }
+      return { moves, flat: cur };
+    }
+
+    // ---- stage 3: wings, via 3-cycle commutators ----
+    function solveWings(flat, tgt) {
+      const goal = WING_STICKERS.map(i => tgt[i]);
+      const applyG = (v, g) => { const n = new Array(v.length); for (let i = 0; i < v.length; i++) n[g[i]] = v[i]; return n; };
+      const score = v => { let c = 0; for (let i = 0; i < v.length; i++) if (v[i] === goal[i]) c++; return c; };
+
+      let v = WING_STICKERS.map(i => flat[i]);
+      const moves = [];
+      for (let guard = 0; guard < 40 && score(v) < v.length; guard++) {
+        const base = score(v);
+        const cands = WING_GENS.map(a => { const n = applyG(v, a.g); return { s: score(n), a, n }; });
+        cands.sort((x, y) => y.s - x.s);
+
+        if (cands[0].s > base) {
+          // Among equally good moves prefer the one with the best follow-up.
+          const tied = cands.filter(c => c.s === cands[0].s);
+          let best = tied[0];
+          if (tied.length > 1) {
+            let bestNext = -1;
+            for (const c of tied) {
+              let m = -1;
+              for (const b of WING_GENS) { const s2 = score(applyG(c.n, b.g)); if (s2 > m) m = s2; }
+              if (m > bestNext) { bestNext = m; best = c; }
+            }
+          }
+          v = best.n; moves.push(...best.a.seq);
+          continue;
+        }
+
+        // No single algorithm helps: look two, then three deep.
+        let pair = null, pairScore = base;
+        for (const a of WING_GENS) {
+          const n1 = applyG(v, a.g);
+          for (const b of WING_GENS) {
+            const n2 = applyG(n1, b.g), s = score(n2);
+            if (s > pairScore) { pairScore = s; pair = { seq: [a, b], n: n2 }; }
+          }
+        }
+        if (!pair) {
+          outer:
+          for (const a of WING_GENS) {
+            const n1 = applyG(v, a.g);
+            for (const b of WING_GENS) {
+              const n2 = applyG(n1, b.g);
+              for (const c of WING_GENS) {
+                const n3 = applyG(n2, c.g);
+                if (score(n3) > base) { pair = { seq: [a, b, c], n: n3 }; break outer; }
+              }
+            }
+          }
+        }
+        if (!pair) return null;
+        v = pair.n;
+        for (const a of pair.seq) moves.push(...a.seq);
+      }
+      return score(v) === v.length ? { moves } : null;
+    }
+
+    // ---- full solve: returns { stages, moves } or null if the colouring is impossible ----
+    function solvePyraminx(startState) {
+      let flat = stateToFlat(startState);
+      if (isCubeSolved(startState)) return { stages: [], moves: [] };
+
+      const target = deriveTargetFaceColors(flat);
+      if (!target) return null;
+      const tgt = stickerTargets(target);
+
+      const stages = [];
+      const runStage = (name, blurb, seq) => {
+        const expanded = simplifyMoves(expandSlices(seq));
+        for (const m of expanded) flat = applyFlatMove(flat, m);
+        if (expanded.length) stages.push({ name, blurb, moves: expanded });
+      };
+
+      // Shortcut: if we generated this scramble ourselves, just undo it.
+      if (knownScrambleSequence.length > 0) {
+        const undo = simplifyMoves(knownScrambleSequence.slice().reverse().map(invertMove));
+        let test = flat;
+        for (const m of undo) test = applyFlatMove(test, m);
+        if (allMatch(test, tgt)) {
+          return { target, stages: [{ name: 'Undo the scramble', blurb: 'Reverse the turns that scrambled the pyramid.', moves: undo }], moves: undo };
+        }
+      }
+
+      const labels = centerMiddleLabels(flat, target);
+      if (!labels) return null;
+      const s1 = solveCentersMiddles(labels);
+      if (!s1) return null;
+      runStage('Centres & middle edges', 'Line up the middle of every face using 3-layer turns.', s1);
+      if (!piecesMatch(flat, tgt, 'center') || !piecesMatch(flat, tgt, 'middle')) return null;
+
+      const s2 = solveTwistables(flat, tgt, CORNER_PIECES, CORNER_AXIS);
+      if (!s2) return null;
+      runStage('Corners', 'Twist each big corner block until its three colours match its faces.', s2.moves);
+
+      const s3 = solveWings(flat, tgt);
+      if (!s3) return null;
+      runStage('Wing pieces', 'Cycle the remaining edge pieces into place.', s3.moves);
+      if (!piecesMatch(flat, tgt, 'wing')) return null;
+
+      const s4 = solveTwistables(flat, tgt, TIP_PIECES, TIP_AXIS);
+      if (!s4) return null;
+      runStage('Tips', 'Spin the four little tips to finish.', s4.moves);
+
+      if (!allMatch(flat, tgt)) return null;
+      return { target, stages, moves: stages.reduce((a, s) => a.concat(s.moves), []) };
+    }
+
+    // Explicit Layer Information for Kid Instructions
+    function getKidInstruction(move) {
+      const isCCW = move.endsWith("'");
+      const dirText = isCCW ? "COUNTER-CLOCKWISE (to the left ↺)" : "CLOCKWISE (to the right ↻)";
+
+      // 1-LAYER TURNS (TIPS)
+      if (move.startsWith('u') || move.startsWith('l') || move.startsWith('r') || move.startsWith('b')) {
+        let cornerName = "TOP";
+        if (move.startsWith('l')) cornerName = "LEFT";
+        if (move.startsWith('r')) cornerName = "RIGHT";
+        if (move.startsWith('b')) cornerName = "BACK";
+
+        return {
+          title: `Twist the ${cornerName} TIP ${isCCW ? "Left ↺" : "Right ↻"}`,
+          badgeClass: "layer-1",
+          badgeText: "1️⃣ TWIST 1 LAYER (JUST THE TIP)",
+          layersText: `<strong>TWIST EXACTLY 1 LAYER:</strong> Only the very single tip triangle at the ${cornerName} corner. Do NOT twist any pieces beneath it!`,
+          grab: `Pinch <strong>only the single tip triangle</strong> at the ${cornerName} corner between your thumb and index finger.`,
+          turn: `Twist it <strong>EXACTLY 1 CLICK (120°) ${dirText}</strong> until the colors align with the piece below.`
+        };
+      }
+
+      // 3-LAYER WIDE TURNS
+      if (move.includes('w')) {
+        let cornerName = "TOP";
+        if (move.startsWith('L')) cornerName = "LEFT";
+        if (move.startsWith('R')) cornerName = "RIGHT";
+        if (move.startsWith('B')) cornerName = "BACK";
+
+        return {
+          title: `Turn the ${cornerName} 3 LAYERS ${isCCW ? "Left ↺" : "Right ↻"}`,
+          badgeClass: "layer-3",
+          badgeText: "3️⃣ TWIST 3 LAYERS TOGETHER",
+          layersText: `<strong>TWIST EXACTLY 3 LAYERS:</strong> The ${cornerName} 3 layers rotate together as one large block! Only the bottom-most layer stays still.`,
+          grab: `Wrap your hand around the <strong>top 3 layers</strong>. Hold only the bottom layer flat with your other hand!`,
+          turn: `Rotate the 3 layers together <strong>EXACTLY 1 CLICK (120°) ${dirText}</strong>.`
+        };
+      }
+
+      // 2-LAYER TURNS (CORNER BLOCKS)
+      let cornerName = "TOP";
+      if (move.startsWith('L')) cornerName = "LEFT";
+      if (move.startsWith('R')) cornerName = "RIGHT";
+      if (move.startsWith('B')) cornerName = "BACK";
+
+      return {
+        title: `Turn the ${cornerName} CORNER ${isCCW ? "Left ↺" : "Right ↻"}`,
+        badgeClass: "layer-2",
+        badgeText: "2️⃣ TWIST 2 LAYERS TOGETHER",
+        layersText: `<strong>TWIST EXACTLY 2 LAYERS TOGETHER:</strong> Grab the ${cornerName} tip PLUS the 1 row of triangles directly underneath it. Turn them as a single block!`,
+        grab: `Grip both the tip and the second layer firmly with your fingers. Hold the remaining layers steady with your other hand!`,
+        turn: `Rotate both layers together <strong>EXACTLY 1 CLICK (120°) ${dirText}</strong> until it locks in place.`
+      };
+    }
+
+    // Solution View & 3D Animation Controller
+    let solutionSteps = [];
+    let solutionStages = [];
+    let solutionTarget = null;
+    let currentStepIdx = 0;
+    let animTimer = null;
+
+    const editorContainer = document.getElementById('editor-container');
+    const solutionView = document.getElementById('solution-view');
+
+    document.getElementById('solve-btn').addEventListener('click', () => {
+      let emptyCount = 0;
+      for (let f = 0; f < 4; f++) {
+        for (let t = 0; t < 16; t++) {
+          if (!cubeState[f][t]) emptyCount++;
+        }
+      }
+
+      if (emptyCount > 0) {
+        alert(`You still have ${emptyCount} empty segments! Please color all 4 sides before clicking Solve.`);
+        return;
+      }
+
+      // A real Pyraminx shows each colour exactly 16 times. Without this a
+      // mis-copied cube (say, every side red) reads as "already solved".
+      const counts = {};
+      for (let f = 0; f < 4; f++) for (let t = 0; t < 16; t++) counts[cubeState[f][t]] = (counts[cubeState[f][t]] || 0) + 1;
+      const wrong = Object.keys(counts).filter(c => counts[c] !== 16);
+      if (wrong.length) {
+        alert("Each colour has to appear exactly 16 times, and right now they don't:\n\n" +
+          Object.keys(counts).map(c => `  ${c}: ${counts[c]} (should be 16)`).join('\n') +
+          "\n\nCheck the tally under the palette and fix the sides that don't match your puzzle.");
+        return;
+      }
+
+      const result = solvePyraminx(cubeState);
+
+      if (!result) {
+        alert("Those colours don't make a real Pyraminx.\n\nEvery piece has to exist exactly once, so a colouring copied down slightly wrong can be impossible to solve. Double-check each side against the puzzle and try again.");
+        return;
+      }
+
+      if (result.moves.length === 0) {
+        alert("🎉 Your Pyraminx is already fully solved! Great job!");
+        return;
+      }
+
+      solutionSteps = result.moves;
+      solutionStages = result.stages;
+      solutionTarget = result.target;
+      currentStepIdx = 0;
+      buildMoveList();
+      updateStartingHold();
+      editorContainer.style.display = 'none';
+      solutionView.style.display = 'flex';
+      renderCurrentStep();
+      playBeep(700, 0.2);
+    });
+
+    // ---- Full move list ----
+    const FACE_LABELS = ['front', 'left', 'right', 'bottom'];
+
+    function buildMoveList() {
+      const body = document.getElementById('move-list-body');
+      body.innerHTML = '';
+      let n = 0;
+      solutionStages.forEach(stage => {
+        const wrap = document.createElement('div');
+        wrap.className = 'move-stage';
+
+        const label = document.createElement('div');
+        label.className = 'move-stage-label';
+        label.textContent = `${stage.name} — ${stage.moves.length} move${stage.moves.length === 1 ? '' : 's'}`;
+        label.title = stage.blurb;
+        wrap.appendChild(label);
+
+        const chips = document.createElement('div');
+        chips.className = 'move-chips';
+        stage.moves.forEach(move => {
+          const idx = n++;
+          const chip = document.createElement('button');
+          chip.className = 'move-chip';
+          chip.dataset.idx = idx;
+          chip.title = getKidInstruction(move).title;
+          chip.innerHTML = `<span class="chip-n">${idx + 1}</span>${move}`;
+          chip.addEventListener('click', () => jumpToStep(idx));
+          chips.appendChild(chip);
+        });
+        wrap.appendChild(chips);
+        body.appendChild(wrap);
+      });
+
+      document.getElementById('move-list-sub').textContent =
+        `${solutionSteps.length} moves in ${solutionStages.length} stage${solutionStages.length === 1 ? '' : 's'}. Tap any move to jump to it.`;
+    }
+
+    function highlightMoveList() {
+      document.querySelectorAll('#move-list-body .move-chip').forEach(chip => {
+        const i = Number(chip.dataset.idx);
+        chip.classList.toggle('done', i < currentStepIdx);
+        chip.classList.toggle('current', i === currentStepIdx);
+      });
+      const cur = document.querySelector('#move-list-body .move-chip.current');
+      if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+
+    // Replays the cube from the entered state so any step can be jumped to directly.
+    function jumpToStep(idx) {
+      idx = Math.max(0, Math.min(idx, solutionSteps.length));
+      while (currentStepIdx > idx) {
+        currentStepIdx--;
+        cubeState = applyMove(cubeState, invertMove(solutionSteps[currentStepIdx]));
+      }
+      while (currentStepIdx < idx) {
+        cubeState = applyMove(cubeState, solutionSteps[currentStepIdx]);
+        currentStepIdx++;
+      }
+      playBeep(480);
+      renderCurrentStep();
+    }
+
+    document.getElementById('copy-moves-btn').addEventListener('click', () => {
+      const text = solutionStages
+        .map(st => `${st.name}: ${st.moves.join(' ')}`)
+        .join('\n');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(
+          () => { document.getElementById('copy-moves-btn').textContent = '✅ Copied!';
+                  setTimeout(() => document.getElementById('copy-moves-btn').textContent = '📋 Copy notation', 1600); },
+          () => alert(text)
+        );
+      } else {
+        alert(text);
+      }
+      playBeep(600);
+    });
+
+    // The solver works out which colour belongs on which face from the puzzle
+    // itself, so the "hold it like this" line has to follow suit.
+    function updateStartingHold() {
+      const el = document.getElementById('starting-hold');
+      if (!el) return;
+      if (!solutionTarget) {
+        el.innerHTML = '<strong>Starting Hold:</strong> Keep the pyramid in exactly the orientation you coloured it in, and do not turn it around between moves.';
+        return;
+      }
+      el.innerHTML = '<strong>Starting Hold:</strong> Hold the pyramid with the <strong>' +
+        solutionTarget[0].toUpperCase() + ' face in FRONT</strong> and the <strong>' +
+        solutionTarget[3].toUpperCase() + ' face flat on the BOTTOM</strong> ' +
+        '(left side ' + solutionTarget[1] + ', right side ' + solutionTarget[2] + '). Keep it that way for every move.';
+    }
+
+    function renderCurrentStep() {
+      const total = solutionSteps.length;
+      const progressPercent = Math.round(((currentStepIdx) / total) * 100);
+      document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+
+      if (currentStepIdx >= total) {
+        // Solved Screen!
+        document.getElementById('step-badge').textContent = "Victory!";
+        document.getElementById('instruction-title').innerHTML = "<span class='win-banner'>🎉 PYRAMINX SOLVED! 🎉</span>";
+        document.getElementById('layer-badge').style.display = 'none';
+        document.getElementById('layers-instruction').innerHTML = "<strong>Congratulations!</strong> You successfully solved the 4-layer Pyraminx!";
+        document.getElementById('grip-instruction').innerHTML = "Every corner, edge, and center piece is now perfectly back in place.";
+        document.getElementById('turn-instruction').innerHTML = "Ready for the next scramble!";
+        document.getElementById('prev-step-btn').style.display = 'none';
+        document.getElementById('next-step-btn').textContent = "Solve Another Scramble 🔄";
+        document.getElementById('next-step-btn').onclick = () => {
+          document.getElementById('next-step-btn').onclick = null;
+          solutionView.style.display = 'none';
+          editorContainer.style.display = 'flex';
+          setSolvedState();
+        };
+
+        solver3D.activeMove = null;
+        solver3D.render();
+        highlightMoveList();
+        return;
+      }
+
+      document.getElementById('next-step-btn').onclick = null;
+
+      const move = solutionSteps[currentStepIdx];
+      const info = getKidInstruction(move);
+
+      document.getElementById('step-badge').textContent = `Step ${currentStepIdx + 1} of ${total}`;
+      document.getElementById('instruction-title').textContent = info.title;
+
+      const layerBadge = document.getElementById('layer-badge');
+      layerBadge.style.display = 'inline-flex';
+      layerBadge.className = `layer-badge ${info.badgeClass}`;
+      layerBadge.textContent = info.badgeText;
+
+      document.getElementById('layers-instruction').innerHTML = info.layersText;
+      document.getElementById('grip-instruction').innerHTML = `<strong>Where to Place Fingers:</strong> ${info.grab}`;
+      document.getElementById('turn-instruction').innerHTML = `<strong>Twist Amount & Direction:</strong> ${info.turn}`;
+
+      document.getElementById('prev-step-btn').style.display = currentStepIdx === 0 ? 'none' : 'block';
+      document.getElementById('next-step-btn').textContent = currentStepIdx === total - 1 ? "Finish & Solve! 🏁" : "I've Done This Move! Next ▶";
+
+      highlightMoveList();
+
+      solver3D.activeMove = move;
+      solver3D.setPresetCamera(getMoveCamera(move));
+      triggerMoveAnimation();
+    }
+
+    function getMoveCamera(move) {
+      const axis = move[0].toUpperCase();
+      if (axis === 'B') return 'bottom';   // back corner: look from underneath to see it
+      if (axis === 'L') return 'left';
+      if (axis === 'R') return 'right';
+      return 'front';
+    }
+
+    function triggerMoveAnimation() {
+      if (animTimer) cancelAnimationFrame(animTimer);
+
+      const move = solutionSteps[currentStepIdx];
+      if (!move) return;
+
+      const isCCW = move.endsWith("'");
+      const targetAngle = (isCCW ? -1 : 1) * (2 * Math.PI / 3); // 120 deg
+      let startTime = performance.now();
+      const duration = 1200; // ms
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 0.5 * (1 - Math.cos(Math.PI * progress));
+        solver3D.animAngle = targetAngle * ease;
+        solver3D.render();
+
+        if (progress < 1) {
+          animTimer = requestAnimationFrame(animate);
+        } else {
+          setTimeout(() => {
+            solver3D.animAngle = 0;
+            solver3D.render();
+          }, 350);
+        }
+      }
+
+      animTimer = requestAnimationFrame(animate);
+    }
+
+    document.getElementById('replay-anim-btn').addEventListener('click', () => {
+      triggerMoveAnimation();
+      playBeep(450);
+    });
+
+    document.getElementById('reset-cam-btn').addEventListener('click', () => {
+      solver3D.setPresetCamera('front');
+    });
+
+    document.getElementById('next-step-btn').addEventListener('click', () => {
+      if (currentStepIdx < solutionSteps.length) {
+        cubeState = applyMove(cubeState, solutionSteps[currentStepIdx]);
+        currentStepIdx++;
+        playBeep(520 + currentStepIdx * 35);
+        renderCurrentStep();
+      }
+    });
+
+    document.getElementById('prev-step-btn').addEventListener('click', () => {
+      if (currentStepIdx > 0) {
+        currentStepIdx--;
+        cubeState = applyMove(cubeState, invertMove(solutionSteps[currentStepIdx]));
+        playBeep(380);
+        renderCurrentStep();
+      }
+    });
+
+    document.getElementById('exit-solve-btn').addEventListener('click', () => {
+      solutionView.style.display = 'none';
+      editorContainer.style.display = 'flex';
+      setFace(currentFace);
+    });
+
+    // Start application
+    init2DSvg();
+    setFace(0);
+    updateTally();
+  </script>
+</body>
+</html>
