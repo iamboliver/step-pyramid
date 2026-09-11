@@ -85,6 +85,39 @@
       line-height: 1.4;
     }
 
+    .mode-toggle {
+      display: inline-flex;
+      gap: 0.2rem;
+      margin-top: 0.9rem;
+      padding: 0.2rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: 9999px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .mode-btn:hover {
+      color: var(--text);
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 12px var(--accent-glow);
+      cursor: default;
+    }
+
     .main-container {
       width: 100%;
       max-width: 920px;
@@ -707,7 +740,11 @@
 
   <header>
     <h1>Step Pyramid 🔺</h1>
-    <p class="subtitle">Colour in your Pyraminx, follow the turns, watch it solve. A step-by-step guide for the 4-layer (Master) Pyraminx.</p>
+    <p class="subtitle" id="page-subtitle">Colour in your Pyraminx, follow the turns, watch it solve. A step-by-step guide for the 4-layer (Master) Pyraminx.</p>
+    <div class="mode-toggle" id="mode-toggle" role="group" aria-label="Puzzle size">
+      <button class="mode-btn" data-n="3">3-Layer</button>
+      <button class="mode-btn" data-n="4">4-Layer (Master)</button>
+    </div>
   </header>
 
   <div class="main-container" id="editor-container">
@@ -732,19 +769,19 @@
     <div class="color-panel">
       <div class="color-chip chip-blue" data-color="blue" title="Paint Blue">
         <span class="chip-swatch"></span>
-        <span>Blue (<span id="count-blue">0</span>/16)</span>
+        <span>Blue (<span id="count-blue">0</span>/<span id="per-face-blue"></span>)</span>
       </div>
       <div class="color-chip chip-red" data-color="red" title="Paint Red">
         <span class="chip-swatch"></span>
-        <span>Red (<span id="count-red">0</span>/16)</span>
+        <span>Red (<span id="count-red">0</span>/<span id="per-face-red"></span>)</span>
       </div>
       <div class="color-chip chip-green" data-color="green" title="Paint Green">
         <span class="chip-swatch"></span>
-        <span>Green (<span id="count-green">0</span>/16)</span>
+        <span>Green (<span id="count-green">0</span>/<span id="per-face-green"></span>)</span>
       </div>
       <div class="color-chip chip-yellow" data-color="yellow" title="Paint Yellow">
         <span class="chip-swatch"></span>
-        <span>Yellow (<span id="count-yellow">0</span>/16)</span>
+        <span>Yellow (<span id="count-yellow">0</span>/<span id="per-face-yellow"></span>)</span>
       </div>
       <div class="color-chip chip-cycle active-brush" data-color="cycle" title="Click segment to cycle colors">
         <span class="chip-swatch"></span>
@@ -763,7 +800,7 @@
 
         <div class="pyramid-svg-container">
           <svg class="pyramid-svg" viewBox="0 0 500 440" id="face-svg">
-            <!-- 16 Triangles rendered via JavaScript -->
+            <!-- Triangles rendered via JavaScript -->
           </svg>
         </div>
 
@@ -788,7 +825,7 @@
 
     <!-- Status Box -->
     <div class="status-box" id="status-box">
-      Total Colored: 0 of 64 segments. Click any segment to color it!
+      Click any segment to color it!
     </div>
 
     <!-- Action Buttons -->
@@ -880,6 +917,13 @@
       } catch (e) {}
     }
 
+    // Layer count: 3 = standard Pyraminx, 4 = Master Pyraminx (default). Read once
+    // at load; switching modes reloads the page (see the mode-toggle handler below)
+    // rather than rebuilding all the derived geometry/state in place.
+    const N = new URLSearchParams(location.search).get('n') === '3' ? 3 : 4;
+    const PER_FACE = N * N;
+    const TOTAL = 4 * PER_FACE;
+
     const COLOR_CYCLE = [null, 'blue', 'red', 'green', 'yellow'];
     const COLOR_HEX = {
       null: '#334155',
@@ -891,8 +935,8 @@
 
     const FACE_NAMES = ["Front", "Left", "Right", "Bottom"];
 
-    // Cube state: 4 faces x 16 tiles = 64 tiles
-    let cubeState = Array.from({ length: 4 }, () => Array(16).fill(null));
+    // Cube state: 4 faces x PER_FACE tiles = TOTAL tiles
+    let cubeState = Array.from({ length: 4 }, () => Array(PER_FACE).fill(null));
     let currentFace = 0;
     let selectedBrush = 'cycle';
 
@@ -901,14 +945,14 @@
     const SVG_TOP_Y = 25;
     const SIDE_LEN = 440;
     const HEIGHT = SIDE_LEN * (Math.sqrt(3) / 2);
-    const S = SIDE_LEN / 4;
-    const H = HEIGHT / 4;
+    const S = SIDE_LEN / N;
+    const H = HEIGHT / N;
 
     function compute2DTriangles() {
       const triangles = [];
       let tileIndex = 0;
 
-      for (let r = 0; r < 4; r++) {
+      for (let r = 0; r < N; r++) {
         const y1 = SVG_TOP_Y + r * H;
         const y2 = SVG_TOP_Y + (r + 1) * H;
         const count = 2 * r + 1;
@@ -959,7 +1003,7 @@
       [V_B, V_R, V_L]  // Face 3: Bottom (outward normal points downward)
     ];
 
-    // Compute 3D triangles for all 64 tiles - SOLID, FILLED IN, NO BLACK GAPS!
+    // Compute 3D triangles for all TOTAL tiles - SOLID, FILLED IN, NO BLACK GAPS!
     function compute3DTiles() {
       const tiles = [];
 
@@ -967,22 +1011,22 @@
         const [A, B, C] = FACE_3D_VERTICES[f];
         let tileId = 0;
 
-        for (let r = 0; r < 4; r++) {
+        for (let r = 0; r < N; r++) {
           const count = 2 * r + 1;
           for (let k = 0; k < count; k++) {
             let p1, p2, p3;
 
             if (k % 2 === 0) {
               const m = k / 2;
-              p1 = interpolateBary(A, B, C, (4 - r) / 4, (r - m) / 4, m / 4);
-              p2 = interpolateBary(A, B, C, (3 - r) / 4, (r + 1 - m) / 4, m / 4);
-              p3 = interpolateBary(A, B, C, (3 - r) / 4, (r - m) / 4, (m + 1) / 4);
+              p1 = interpolateBary(A, B, C, (N - r) / N, (r - m) / N, m / N);
+              p2 = interpolateBary(A, B, C, (N - 1 - r) / N, (r + 1 - m) / N, m / N);
+              p3 = interpolateBary(A, B, C, (N - 1 - r) / N, (r - m) / N, (m + 1) / N);
             } else {
               const m = Math.floor(k / 2);
               // Winding order p1 -> p2 -> p3 matches upright triangle:
-              p1 = interpolateBary(A, B, C, (4 - r) / 4, (r - m) / 4, m / 4);
-              p2 = interpolateBary(A, B, C, (3 - r) / 4, (r - m) / 4, (m + 1) / 4);
-              p3 = interpolateBary(A, B, C, (4 - r) / 4, (r - (m + 1)) / 4, (m + 1) / 4);
+              p1 = interpolateBary(A, B, C, (N - r) / N, (r - m) / N, m / N);
+              p2 = interpolateBary(A, B, C, (N - 1 - r) / N, (r - m) / N, (m + 1) / N);
+              p3 = interpolateBary(A, B, C, (N - r) / N, (r - (m + 1)) / N, (m + 1) / N);
             }
 
             const center = [
@@ -1321,18 +1365,18 @@
       // Fraction from corner apex: 0.0 at tip, 1.0 at opposite base
       const frac = (H_max - proj) / H;
 
-      // 1 Layer: Just the Tip (frac < 0.25)
+      // 1 Layer: Just the Tip (frac < 1/N)
       if (move.startsWith('u') || move.startsWith('l') || move.startsWith('r') || move.startsWith('b')) {
-        return frac < 0.25;
+        return frac < 1 / N;
       }
 
-      // 2 Layers: Corner + 1 row underneath (frac < 0.50)
+      // 2 Layers: Corner + 1 row underneath (frac < 2/N)
       if (move.startsWith('U') || move.startsWith('L') || move.startsWith('R') || move.startsWith('B')) {
         if (move.includes('w')) {
-          // 3 Layers: Wide Turn (frac < 0.75)
-          return frac < 0.75;
+          // 3 Layers: Wide Turn (frac < 3/N) - only exists when N >= 4
+          return frac < 3 / N;
         }
-        return frac < 0.50;
+        return frac < 2 / N;
       }
 
       return false;
@@ -1479,7 +1523,7 @@
     function updateTally() {
       const counts = { 'blue': 0, 'red': 0, 'green': 0, 'yellow': 0, null: 0 };
       for (let f = 0; f < 4; f++) {
-        for (let t = 0; t < 16; t++) {
+        for (let t = 0; t < PER_FACE; t++) {
           counts[cubeState[f][t]]++;
         }
       }
@@ -1489,19 +1533,19 @@
       document.getElementById('count-green').textContent = counts['green'];
       document.getElementById('count-yellow').textContent = counts['yellow'];
 
-      const totalColored = 64 - counts[null];
+      const totalColored = TOTAL - counts[null];
       const statusBox = document.getElementById('status-box');
 
-      if (totalColored === 64) {
-        if (counts['blue'] === 16 && counts['red'] === 16 && counts['green'] === 16 && counts['yellow'] === 16) {
-          statusBox.innerHTML = "✅ <strong>Ready to solve!</strong> All 64 segments are filled (16 of each color). Click 'Solve Pyraminx!'";
+      if (totalColored === TOTAL) {
+        if (counts['blue'] === PER_FACE && counts['red'] === PER_FACE && counts['green'] === PER_FACE && counts['yellow'] === PER_FACE) {
+          statusBox.innerHTML = `✅ <strong>Ready to solve!</strong> All ${TOTAL} segments are filled (${PER_FACE} of each color). Click 'Solve Pyraminx!'`;
           statusBox.style.color = '#34d399';
         } else {
-          statusBox.innerHTML = `⚠️ <strong>Color count mismatch:</strong> Need 16 of each color. (Blue:${counts['blue']}, Red:${counts['red']}, Green:${counts['green']}, Yellow:${counts['yellow']})`;
+          statusBox.innerHTML = `⚠️ <strong>Color count mismatch:</strong> Need ${PER_FACE} of each color. (Blue:${counts['blue']}, Red:${counts['red']}, Green:${counts['green']}, Yellow:${counts['yellow']})`;
           statusBox.style.color = '#f87171';
         }
       } else {
-        statusBox.innerHTML = `Total Colored: ${totalColored} of 64 segments. Keep coloring!`;
+        statusBox.innerHTML = `Total Colored: ${totalColored} of ${TOTAL} segments. Keep coloring!`;
         statusBox.style.color = '#cbd5e1';
       }
     }
@@ -1509,7 +1553,7 @@
     // Helper Presets
     document.getElementById('clear-btn').addEventListener('click', () => {
       if (confirm("Reset all segments to empty?")) {
-        cubeState = Array.from({ length: 4 }, () => Array(16).fill(null));
+        cubeState = Array.from({ length: 4 }, () => Array(PER_FACE).fill(null));
         knownScrambleSequence = [];
         update2DSvgColors();
         editor3D.render();
@@ -1522,7 +1566,7 @@
       knownScrambleSequence = [];
       const faceColors = ['red', 'blue', 'green', 'yellow'];
       for (let f = 0; f < 4; f++) {
-        cubeState[f] = Array(16).fill(faceColors[f]);
+        cubeState[f] = Array(PER_FACE).fill(faceColors[f]);
       }
       update2DSvgColors();
       editor3D.render();
@@ -1532,24 +1576,24 @@
 
     document.getElementById('preset-solved-btn').addEventListener('click', setSolvedState);
 
-    // Precomputed 3D Mathematically Exact Move Permutations
-    const MOVE_DEFS = {
-      "u": [V_U, 0.25, 2*Math.PI/3], "u'": [V_U, 0.25, -2*Math.PI/3],
-      "U": [V_U, 0.50, 2*Math.PI/3], "U'": [V_U, 0.50, -2*Math.PI/3],
-      "Uw": [V_U, 0.75, 2*Math.PI/3], "Uw'": [V_U, 0.75, -2*Math.PI/3],
-      "l": [V_L, 0.25, 2*Math.PI/3], "l'": [V_L, 0.25, -2*Math.PI/3],
-      "L": [V_L, 0.50, 2*Math.PI/3], "L'": [V_L, 0.50, -2*Math.PI/3],
-      "Lw": [V_L, 0.75, 2*Math.PI/3], "Lw'": [V_L, 0.75, -2*Math.PI/3],
-      "r": [V_R, 0.25, 2*Math.PI/3], "r'": [V_R, 0.25, -2*Math.PI/3],
-      "R": [V_R, 0.50, 2*Math.PI/3], "R'": [V_R, 0.50, -2*Math.PI/3],
-      "Rw": [V_R, 0.75, 2*Math.PI/3], "Rw'": [V_R, 0.75, -2*Math.PI/3],
-      "b": [V_B, 0.25, 2*Math.PI/3], "b'": [V_B, 0.25, -2*Math.PI/3],
-      "B": [V_B, 0.50, 2*Math.PI/3], "B'": [V_B, 0.50, -2*Math.PI/3],
-      "Bw": [V_B, 0.75, 2*Math.PI/3], "Bw'": [V_B, 0.75, -2*Math.PI/3]
-    };
+    // Precomputed 3D Mathematically Exact Move Permutations.
+    // Every axis gets a tip turn (1 layer) and a vertex turn (2 layers). A wide
+    // turn (3 layers) only exists once there's a 4th layer to hold still under it.
+    const MOVE_DEFS = {};
+    for (const [letter, axis] of [['u', V_U], ['l', V_L], ['r', V_R], ['b', V_B]]) {
+      const upper = letter.toUpperCase();
+      MOVE_DEFS[letter] = [axis, 1 / N, 2 * Math.PI / 3];
+      MOVE_DEFS[letter + "'"] = [axis, 1 / N, -2 * Math.PI / 3];
+      MOVE_DEFS[upper] = [axis, 2 / N, 2 * Math.PI / 3];
+      MOVE_DEFS[upper + "'"] = [axis, 2 / N, -2 * Math.PI / 3];
+      if (N >= 4) {
+        MOVE_DEFS[upper + 'w'] = [axis, 3 / N, 2 * Math.PI / 3];
+        MOVE_DEFS[upper + "w'"] = [axis, 3 / N, -2 * Math.PI / 3];
+      }
+    }
 
     function computeMovePerm(axis, maxFrac, angle) {
-      const perm = Array.from({length: 64}, (_, i) => i);
+      const perm = Array.from({length: TOTAL}, (_, i) => i);
       const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
       const u = [axis[0]/axisLen, axis[1]/axisLen, axis[2]/axisLen];
       const H_max = axisLen;
@@ -1584,22 +1628,22 @@
       const p = MOVE_PERMS[move];
       if (!p) return cloneState(st);
 
-      const flat = new Array(64);
+      const flat = new Array(TOTAL);
       for (let f = 0; f < 4; f++) {
-        for (let t = 0; t < 16; t++) {
-          flat[f * 16 + t] = st[f][t];
+        for (let t = 0; t < PER_FACE; t++) {
+          flat[f * PER_FACE + t] = st[f][t];
         }
       }
 
-      const nextFlat = new Array(64);
-      for (let i = 0; i < 64; i++) {
+      const nextFlat = new Array(TOTAL);
+      for (let i = 0; i < TOTAL; i++) {
         nextFlat[p[i]] = flat[i];
       }
 
-      const next = Array.from({ length: 4 }, () => new Array(16));
+      const next = Array.from({ length: 4 }, () => new Array(PER_FACE));
       for (let f = 0; f < 4; f++) {
-        for (let t = 0; t < 16; t++) {
-          next[f][t] = nextFlat[f * 16 + t];
+        for (let t = 0; t < PER_FACE; t++) {
+          next[f][t] = nextFlat[f * PER_FACE + t];
         }
       }
       return next;
@@ -1654,7 +1698,8 @@
     let knownScrambleSequence = [];
     document.getElementById('sample-btn').addEventListener('click', () => {
       setSolvedState();
-      const scramblePool = ['U', "U'", 'R', "R'", 'L', "L'", 'B', "B'", 'Uw', "Uw'", 'Rw', "Rw'", 'u', "u'", 'r', "r'", 'l', "l'", 'b', "b'"];
+      const scramblePool = ['U', "U'", 'R', "R'", 'L', "L'", 'B', "B'", 'u', "u'", 'r', "r'", 'l', "l'", 'b', "b'"]
+        .concat(N >= 4 ? ['Uw', "Uw'", 'Rw', "Rw'"] : []);
       knownScrambleSequence = [];
       const numMoves = 8 + Math.floor(Math.random() * 4); // 8-11 realistic physical turns
 
@@ -1693,12 +1738,12 @@
       const len = Math.hypot(axis[0], axis[1], axis[2]);
       const u = [axis[0] / len, axis[1] / len, axis[2] / len];
       const proj = center[0] * u[0] + center[1] * u[1] + center[2] * u[2];
-      const frac = (len - proj) / (len * 4 / 3);
-      return Math.min(3, Math.floor(frac * 4 + 1e-6));
+      const frac = (len - proj) / (len * 4 / 3);   // len*4/3 is tetrahedron geometry, not layer count
+      return Math.min(N - 1, Math.floor(frac * N + 1e-6));
     }
 
     // Signature -> piece id. Stickers sharing a signature share a physical piece.
-    const PIECE_OF_STICKER = new Array(64);
+    const PIECE_OF_STICKER = new Array(TOTAL);
     const PIECE_STICKERS = [];
     const PIECE_SIG = [];
     {
@@ -1719,6 +1764,10 @@
       if (sig.includes('0')) return 'tip';
       if (PIECE_STICKERS[i].length === 1) return 'center';
       if (PIECE_STICKERS[i].length === 3) return 'corner';
+      // 2-sticker pieces: on a standard (N=3) Pyraminx every one of them is a
+      // plain "edge" -- there's no row beyond the one adjacent to a corner, so
+      // the wing/middle split that exists at N>=4 doesn't apply.
+      if (N === 3) return 'edge';
       return sig.includes('1') ? 'wing' : 'middle';
     });
 
@@ -1739,51 +1788,54 @@
     CORNER_PIECES.forEach(p => CORNER_AXIS[p] = axisLetterOfPiece(p));
     TIP_PIECES.forEach(p => TIP_AXIS[p] = axisLetterOfPiece(p).toLowerCase());
 
-    const faceOfSticker = i => Math.floor(i / 16);
+    const faceOfSticker = i => Math.floor(i / PER_FACE);
 
-    // ---- flat sticker helpers (a flat state is a 64-entry colour array) ----
+    // ---- flat sticker helpers (a flat state is a TOTAL-entry colour array) ----
     function stateToFlat(st) {
-      const flat = new Array(64);
-      for (let f = 0; f < 4; f++) for (let t = 0; t < 16; t++) flat[f * 16 + t] = st[f][t];
+      const flat = new Array(TOTAL);
+      for (let f = 0; f < 4; f++) for (let t = 0; t < PER_FACE; t++) flat[f * PER_FACE + t] = st[f][t];
       return flat;
     }
     function flatToState(flat) {
-      const st = Array.from({ length: 4 }, () => new Array(16));
-      for (let f = 0; f < 4; f++) for (let t = 0; t < 16; t++) st[f][t] = flat[f * 16 + t];
+      const st = Array.from({ length: 4 }, () => new Array(PER_FACE));
+      for (let f = 0; f < 4; f++) for (let t = 0; t < PER_FACE; t++) st[f][t] = flat[f * PER_FACE + t];
       return st;
     }
     function applyFlatMove(flat, move) {
       const p = MOVE_PERMS[move];
       if (!p) return flat.slice();
-      const next = new Array(64);
-      for (let i = 0; i < 64; i++) next[p[i]] = flat[i];
+      const next = new Array(TOTAL);
+      for (let i = 0; i < TOTAL; i++) next[p[i]] = flat[i];
       return next;
     }
     function permOfSequence(seq) {
-      let p = Array.from({ length: 64 }, (_, i) => i);
+      let p = Array.from({ length: TOTAL }, (_, i) => i);
       for (const m of seq) {
-        const q = MOVE_PERMS[m], r = new Array(64);
-        for (let i = 0; i < 64; i++) r[i] = q[p[i]];
+        const q = MOVE_PERMS[m], r = new Array(TOTAL);
+        for (let i = 0; i < TOTAL; i++) r[i] = q[p[i]];
         p = r;
       }
       return p;
     }
 
-    // ---- slice moves: Us = Uw U' turns layer 3 only ----
-    const SLICE_EXPAND = {};
-    for (const ax of AXIS_LETTERS) {
-      SLICE_EXPAND[ax + 's'] = [ax + 'w', ax + "'"];
-      SLICE_EXPAND[ax + "s'"] = [ax, ax + "w'"];
+    // ---- slice moves: Us = Uw U' turns layer 3 only. Master (N>=4) Pyraminx
+    // only -- a standard 3-layer Pyraminx has no wide move to build a slice from,
+    // so SLICE_* stay empty and expandSlices becomes a harmless pass-through.
+    let SLICE_EXPAND = {}, SLICE_MOVES = [], SLICE_PERM = {};
+    if (N >= 4) {
+      for (const ax of AXIS_LETTERS) {
+        SLICE_EXPAND[ax + 's'] = [ax + 'w', ax + "'"];
+        SLICE_EXPAND[ax + "s'"] = [ax, ax + "w'"];
+      }
+      SLICE_MOVES = Object.keys(SLICE_EXPAND);
+      for (const m of SLICE_MOVES) SLICE_PERM[m] = permOfSequence(SLICE_EXPAND[m]);
     }
     const expandSlices = seq => seq.reduce((o, m) => (o.push(...(SLICE_EXPAND[m] || [m])), o), []);
-    const SLICE_MOVES = Object.keys(SLICE_EXPAND);
-    const SLICE_PERM = {};
-    for (const m of SLICE_MOVES) SLICE_PERM[m] = permOfSequence(SLICE_EXPAND[m]);
 
     // ---- stage 1 lookup table: centers + middles under slice moves ----
     // 16 stickers, 138,240 reachable states, solvable in <= 10 slice turns.
     const CM_STICKERS = [];
-    for (let i = 0; i < 64; i++) {
+    for (let i = 0; i < TOTAL; i++) {
       const t = PIECE_TYPE[PIECE_OF_STICKER[i]];
       if (t === 'center' || t === 'middle') CM_STICKERS.push(i);
     }
@@ -1819,28 +1871,32 @@
     for (const m of ALG_POOL) ALG_PERM[m] = SLICE_PERM[m] || MOVE_PERMS[m];
 
     function permEffect(p) {
-      const moved = { tip: [], corner: [], center: [], middle: [], wing: [] };
+      const moved = { tip: [], corner: [], center: [], middle: [], wing: [], edge: [] };
       const note = i => {
         const pc = PIECE_OF_STICKER[i], t = PIECE_TYPE[pc];
         if (!moved[t].includes(pc)) moved[t].push(pc);
       };
-      for (let i = 0; i < 64; i++) if (p[i] !== i) { note(i); note(p[i]); }
+      for (let i = 0; i < TOTAL; i++) if (p[i] !== i) { note(i); note(p[i]); }
       return moved;
     }
 
+    // Wing pieces only exist on N>=4 (the standard 3-layer Pyraminx has no wing
+    // row), so this search is skipped rather than run to find nothing.
     const WING_ALGS = [];
-    for (const x of ALG_POOL) for (const y of ALG_POOL) {
-      if (x === y || x === invertMove(y)) continue;
-      const seq = [x, y, invertMove(x), invertMove(y)];
-      let p = Array.from({ length: 64 }, (_, i) => i);
-      for (const m of seq) { const q = ALG_PERM[m], r = new Array(64); for (let i = 0; i < 64; i++) r[i] = q[p[i]]; p = r; }
-      const e = permEffect(p);
-      if (!e.corner.length && !e.center.length && !e.middle.length && !e.tip.length && e.wing.length) {
-        WING_ALGS.push({ seq, perm: p });
+    if (N >= 4) {
+      for (const x of ALG_POOL) for (const y of ALG_POOL) {
+        if (x === y || x === invertMove(y)) continue;
+        const seq = [x, y, invertMove(x), invertMove(y)];
+        let p = Array.from({ length: TOTAL }, (_, i) => i);
+        for (const m of seq) { const q = ALG_PERM[m], r = new Array(TOTAL); for (let i = 0; i < TOTAL; i++) r[i] = q[p[i]]; p = r; }
+        const e = permEffect(p);
+        if (!e.corner.length && !e.center.length && !e.middle.length && !e.tip.length && e.wing.length) {
+          WING_ALGS.push({ seq, perm: p });
+        }
       }
     }
     const WING_STICKERS = [];
-    for (let i = 0; i < 64; i++) if (PIECE_TYPE[PIECE_OF_STICKER[i]] === 'wing') WING_STICKERS.push(i);
+    for (let i = 0; i < TOTAL; i++) if (PIECE_TYPE[PIECE_OF_STICKER[i]] === 'wing') WING_STICKERS.push(i);
     const WING_SLOT = {};
     WING_STICKERS.forEach((v, k) => WING_SLOT[v] = k);
     const WING_GENS = WING_ALGS.map(a => ({
@@ -1867,14 +1923,14 @@
       }
       return new Set(target).size === 4 ? target : null;
     }
-    const stickerTargets = target => Array.from({ length: 64 }, (_, i) => target[faceOfSticker(i)]);
+    const stickerTargets = target => Array.from({ length: TOTAL }, (_, i) => target[faceOfSticker(i)]);
 
     function piecesMatch(flat, tgt, type) {
       for (const p of piecesOfType(type)) for (const i of PIECE_STICKERS[p]) if (flat[i] !== tgt[i]) return false;
       return true;
     }
     function allMatch(flat, tgt) {
-      for (let i = 0; i < 64; i++) if (flat[i] !== tgt[i]) return false;
+      for (let i = 0; i < TOTAL; i++) if (flat[i] !== tgt[i]) return false;
       return true;
     }
 
@@ -1883,7 +1939,7 @@
       for (let f = 0; f < 4; f++) {
         const color = st[f][0];
         if (!color) return false;
-        for (let t = 1; t < 16; t++) if (st[f][t] !== color) return false;
+        for (let t = 1; t < PER_FACE; t++) if (st[f][t] !== color) return false;
       }
       return true;
     }
@@ -1925,6 +1981,35 @@
       return null;
     }
 
+    // ---- N=3 stage: edges, via corner/tip-neutral commutators ----
+    // Unlike N>=4, a standard Pyraminx has no slice move that isolates the edge
+    // layer -- every vertex turn (U/L/R/B) also spins that vertex's own corner
+    // block. So a plain vertex-turn BFS on the edges would keep undoing the
+    // corner stage. The fix is the same trick as the N>=4 wing algorithms below:
+    // search [x,y,x',y'] commutators of vertex turns for ones whose net effect
+    // 3-cycles edges while leaving every corner and tip exactly where it was.
+    const VERTEX_MOVES = ['U', "U'", 'L', "L'", 'R', "R'", 'B', "B'"];
+    const EDGE_STICKERS = [];
+    for (let i = 0; i < TOTAL; i++) if (PIECE_TYPE[PIECE_OF_STICKER[i]] === 'edge') EDGE_STICKERS.push(i);
+    const EDGE_SLOT = {};
+    EDGE_STICKERS.forEach((v, k) => EDGE_SLOT[v] = k);
+
+    const EDGE_ALGS = [];
+    if (N === 3) {
+      for (const x of VERTEX_MOVES) for (const y of VERTEX_MOVES) {
+        if (x === y || x === invertMove(y)) continue;
+        const seq = [x, y, invertMove(x), invertMove(y)];
+        let p = Array.from({ length: TOTAL }, (_, i) => i);
+        for (const m of seq) { const q = MOVE_PERMS[m], r = new Array(TOTAL); for (let i = 0; i < TOTAL; i++) r[i] = q[p[i]]; p = r; }
+        const e = permEffect(p);
+        if (!e.corner.length && !e.tip.length && e.edge.length) EDGE_ALGS.push({ seq, perm: p });
+      }
+    }
+    const EDGE_GENS = EDGE_ALGS.map(a => ({
+      seq: a.seq,
+      g: EDGE_STICKERS.map(i => EDGE_SLOT[a.perm[i]])
+    }));
+
     // ---- stage 2 / 4: corners and tips (one twist each, at most) ----
     function solveTwistables(flat, tgt, pieces, axisMap) {
       const moves = [];
@@ -1942,17 +2027,21 @@
       return { moves, flat: cur };
     }
 
-    // ---- stage 3: wings, via 3-cycle commutators ----
-    function solveWings(flat, tgt) {
-      const goal = WING_STICKERS.map(i => tgt[i]);
+    // ---- stage 3: wings (N>=4) / edges (N=3), via 3-cycle commutators ----
+    // Greedily apply whichever commutator improves the match count most, then
+    // fall back to searching 2 and 3 deep when no single one helps. Shared by
+    // both piece groups: same algorithm, just a different sticker set and a
+    // different generator list (WING_GENS vs EDGE_GENS).
+    function solveByCommutators(flat, tgt, stickers, gens) {
+      const goal = stickers.map(i => tgt[i]);
       const applyG = (v, g) => { const n = new Array(v.length); for (let i = 0; i < v.length; i++) n[g[i]] = v[i]; return n; };
       const score = v => { let c = 0; for (let i = 0; i < v.length; i++) if (v[i] === goal[i]) c++; return c; };
 
-      let v = WING_STICKERS.map(i => flat[i]);
+      let v = stickers.map(i => flat[i]);
       const moves = [];
       for (let guard = 0; guard < 40 && score(v) < v.length; guard++) {
         const base = score(v);
-        const cands = WING_GENS.map(a => { const n = applyG(v, a.g); return { s: score(n), a, n }; });
+        const cands = gens.map(a => { const n = applyG(v, a.g); return { s: score(n), a, n }; });
         cands.sort((x, y) => y.s - x.s);
 
         if (cands[0].s > base) {
@@ -1963,7 +2052,7 @@
             let bestNext = -1;
             for (const c of tied) {
               let m = -1;
-              for (const b of WING_GENS) { const s2 = score(applyG(c.n, b.g)); if (s2 > m) m = s2; }
+              for (const b of gens) { const s2 = score(applyG(c.n, b.g)); if (s2 > m) m = s2; }
               if (m > bestNext) { bestNext = m; best = c; }
             }
           }
@@ -1973,20 +2062,20 @@
 
         // No single algorithm helps: look two, then three deep.
         let pair = null, pairScore = base;
-        for (const a of WING_GENS) {
+        for (const a of gens) {
           const n1 = applyG(v, a.g);
-          for (const b of WING_GENS) {
+          for (const b of gens) {
             const n2 = applyG(n1, b.g), s = score(n2);
             if (s > pairScore) { pairScore = s; pair = { seq: [a, b], n: n2 }; }
           }
         }
         if (!pair) {
           outer:
-          for (const a of WING_GENS) {
+          for (const a of gens) {
             const n1 = applyG(v, a.g);
-            for (const b of WING_GENS) {
+            for (const b of gens) {
               const n2 = applyG(n1, b.g);
-              for (const c of WING_GENS) {
+              for (const c of gens) {
                 const n3 = applyG(n2, c.g);
                 if (score(n3) > base) { pair = { seq: [a, b, c], n: n3 }; break outer; }
               }
@@ -1999,6 +2088,8 @@
       }
       return score(v) === v.length ? { moves } : null;
     }
+    const solveWings = (flat, tgt) => solveByCommutators(flat, tgt, WING_STICKERS, WING_GENS);
+    const solveEdges = (flat, tgt) => solveByCommutators(flat, tgt, EDGE_STICKERS, EDGE_GENS);
 
     // ---- full solve: returns { stages, moves } or null if the colouring is impossible ----
     function solvePyraminx(startState) {
@@ -2026,21 +2117,30 @@
         }
       }
 
-      const labels = centerMiddleLabels(flat, target);
-      if (!labels) return null;
-      const s1 = solveCentersMiddles(labels);
-      if (!s1) return null;
-      runStage('Centres & middle edges', 'Line up the middle of every face using 3-layer turns.', s1);
-      if (!piecesMatch(flat, tgt, 'center') || !piecesMatch(flat, tgt, 'middle')) return null;
+      if (N >= 4) {
+        const labels = centerMiddleLabels(flat, target);
+        if (!labels) return null;
+        const s1 = solveCentersMiddles(labels);
+        if (!s1) return null;
+        runStage('Centres & middle edges', 'Line up the middle of every face using 3-layer turns.', s1);
+        if (!piecesMatch(flat, tgt, 'center') || !piecesMatch(flat, tgt, 'middle')) return null;
+      }
 
       const s2 = solveTwistables(flat, tgt, CORNER_PIECES, CORNER_AXIS);
       if (!s2) return null;
       runStage('Corners', 'Twist each big corner block until its three colours match its faces.', s2.moves);
 
-      const s3 = solveWings(flat, tgt);
-      if (!s3) return null;
-      runStage('Wing pieces', 'Cycle the remaining edge pieces into place.', s3.moves);
-      if (!piecesMatch(flat, tgt, 'wing')) return null;
+      if (N >= 4) {
+        const s3 = solveWings(flat, tgt);
+        if (!s3) return null;
+        runStage('Wing pieces', 'Cycle the remaining edge pieces into place.', s3.moves);
+        if (!piecesMatch(flat, tgt, 'wing')) return null;
+      } else {
+        const s3 = solveEdges(flat, tgt);
+        if (!s3) return null;
+        runStage('Edges', 'Cycle the remaining edge pieces into place.', s3.moves);
+        if (!piecesMatch(flat, tgt, 'edge')) return null;
+      }
 
       const s4 = solveTwistables(flat, tgt, TIP_PIECES, TIP_AXIS);
       if (!s4) return null;
@@ -2118,7 +2218,7 @@
     document.getElementById('solve-btn').addEventListener('click', () => {
       let emptyCount = 0;
       for (let f = 0; f < 4; f++) {
-        for (let t = 0; t < 16; t++) {
+        for (let t = 0; t < PER_FACE; t++) {
           if (!cubeState[f][t]) emptyCount++;
         }
       }
@@ -2128,14 +2228,14 @@
         return;
       }
 
-      // A real Pyraminx shows each colour exactly 16 times. Without this a
+      // A real Pyraminx shows each colour exactly PER_FACE times. Without this a
       // mis-copied cube (say, every side red) reads as "already solved".
       const counts = {};
-      for (let f = 0; f < 4; f++) for (let t = 0; t < 16; t++) counts[cubeState[f][t]] = (counts[cubeState[f][t]] || 0) + 1;
-      const wrong = Object.keys(counts).filter(c => counts[c] !== 16);
+      for (let f = 0; f < 4; f++) for (let t = 0; t < PER_FACE; t++) counts[cubeState[f][t]] = (counts[cubeState[f][t]] || 0) + 1;
+      const wrong = Object.keys(counts).filter(c => counts[c] !== PER_FACE);
       if (wrong.length) {
-        alert("Each colour has to appear exactly 16 times, and right now they don't:\n\n" +
-          Object.keys(counts).map(c => `  ${c}: ${counts[c]} (should be 16)`).join('\n') +
+        alert(`Each colour has to appear exactly ${PER_FACE} times, and right now they don't:\n\n` +
+          Object.keys(counts).map(c => `  ${c}: ${counts[c]} (should be ${PER_FACE})`).join('\n') +
           "\n\nCheck the tally under the palette and fix the sides that don't match your puzzle.");
         return;
       }
@@ -2268,7 +2368,7 @@
         document.getElementById('step-badge').textContent = "Victory!";
         document.getElementById('instruction-title').innerHTML = "<span class='win-banner'>🎉 PYRAMINX SOLVED! 🎉</span>";
         document.getElementById('layer-badge').style.display = 'none';
-        document.getElementById('layers-instruction').innerHTML = "<strong>Congratulations!</strong> You successfully solved the 4-layer Pyraminx!";
+        document.getElementById('layers-instruction').innerHTML = `<strong>Congratulations!</strong> You successfully solved the ${N}-layer Pyraminx!`;
         document.getElementById('grip-instruction').innerHTML = "Every corner, edge, and center piece is now perfectly back in place.";
         document.getElementById('turn-instruction').innerHTML = "Ready for the next scramble!";
         document.getElementById('prev-step-btn').style.display = 'none';
@@ -2426,6 +2526,29 @@
       solutionView.style.display = 'none';
       editorContainer.style.display = 'flex';
       setFace(currentFace);
+    });
+
+    // ---- Mode toggle: 3-layer (standard) vs 4-layer (Master) ----
+    // Switching sizes changes the sticker count, so there's nothing sensible to
+    // carry over -- the toggle just reloads into the other mode.
+    document.querySelectorAll('#per-face-blue, #per-face-red, #per-face-green, #per-face-yellow')
+      .forEach(el => el.textContent = PER_FACE);
+
+    document.getElementById('page-subtitle').textContent = N === 3
+      ? 'Colour in your Pyraminx, follow the turns, watch it solve. A step-by-step guide for the standard 3-layer Pyraminx.'
+      : 'Colour in your Pyraminx, follow the turns, watch it solve. A step-by-step guide for the 4-layer (Master) Pyraminx.';
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      const btnN = Number(btn.dataset.n);
+      btn.classList.toggle('active', btnN === N);
+      if (btnN !== N) {
+        btn.addEventListener('click', () => {
+          const params = new URLSearchParams(location.search);
+          if (btnN === 4) params.delete('n'); else params.set('n', String(btnN));
+          const qs = params.toString();
+          location.search = qs ? `?${qs}` : '';
+        });
+      }
     });
 
     // Start application
