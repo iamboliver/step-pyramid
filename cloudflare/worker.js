@@ -1,9 +1,14 @@
 /**
  * Serves this repo's Cloudflare deployment under a subpath of the main
- * site, e.g. https://www.oliverbarwell.com/step-pyramid/ -- there's no
+ * site, e.g. https://www.oliverbarwell.com/step-pyramid -- there's no
  * built-in way to stitch a second, separately-deployed project under an
  * existing domain's path, so a small Worker relays requests to that
  * deployment as if it lived at that path natively.
+ *
+ * Canonical URL has no trailing slash (/step-pyramid, not /step-pyramid/).
+ * The two Routes below both need to exist so this Worker sees the slash
+ * form too and can 301 it into the canonical one -- otherwise both URLs
+ * would serve identical content, which is a duplicate-content smell.
  *
  * Uses a Service Binding (env.SITE, bound in wrangler.toml) rather than a
  * plain fetch() to the *.workers.dev hostname. Cloudflare blocks Worker ->
@@ -32,8 +37,16 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // Canonicalize away the trailing slash: /step-pyramid/ -> /step-pyramid
+    // (keeping the query string, e.g. ?n=3). Leaves deeper paths alone --
+    // /step-pyramid/foo stays /step-pyramid/foo.
+    if (url.pathname === MOUNT_PATH + '/') {
+      url.pathname = MOUNT_PATH;
+      return Response.redirect(url.toString(), 301);
+    }
+
     // Strip the mount prefix; whatever's left (plus the original query
-    // string, e.g. ?n=3) is forwarded to the target Worker's root.
+    // string) is forwarded to the target Worker's root.
     let upstreamPath = url.pathname.slice(MOUNT_PATH.length);
     if (upstreamPath === '') upstreamPath = '/';
 

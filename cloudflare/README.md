@@ -1,9 +1,10 @@
-# Deploying under oliverbarwell.com/step-pyramid/
+# Deploying under oliverbarwell.com/step-pyramid
 
 This repo stays separate from your main site's repo. It deploys as its own
-Cloudflare project, and a small Worker mounts it at `/step-pyramid/` on
-your main domain. Everything here is free tier: static hosting (unlimited
-requests) + Workers (100,000 requests/day).
+Cloudflare project, and a small Worker mounts it at `/step-pyramid` (no
+trailing slash — that's the canonical URL; `/step-pyramid/` 301s into it)
+on your main domain. Everything here is free tier: static hosting
+(unlimited requests) + Workers (100,000 requests/day).
 
 ## 1. Deploy this repo as its own site
 
@@ -12,38 +13,47 @@ this repo.
 
 - Build command: *(leave blank — it's plain static HTML)*
 - Build output directory: `/`
-- Project name: `step-pyramid` *(if you pick something else, or Cloudflare
-  assigns a different hostname than expected, update `UPSTREAM` in
-  `worker.js` to match)*
+- Project name: `step-pyramid` *(if you pick something else, update
+  `service` in `wrangler.toml`'s `[[services]]` block to match)*
 
 Cloudflare's dashboard currently offers two flows here — classic **Pages**
-(→ `*.pages.dev`) or the newer **Workers with static assets** (→
-`*.workers.dev`, under your account's workers.dev subdomain, e.g.
-`step-pyramid.<your-subdomain>.workers.dev`). Either works fine for this;
-just note the real hostname it lands on and make sure `UPSTREAM` in
-`worker.js` matches exactly — check it loads before continuing.
+or the newer **Workers with static assets**. Either works fine; check it
+loads at its own `*.pages.dev` / `*.workers.dev` URL before continuing.
 
-## 2. Publish the Worker
+## 2. Publish the mount Worker
 
-Either:
+**Must use the CLI**, not a dashboard code paste — the service binding
+(step 2a below) lives in `wrangler.toml`, which the dashboard's inline
+editor doesn't read.
 
-- **Dashboard**: Workers & Pages → Create → Worker → paste in `worker.js` →
-  Deploy.
-- **CLI**: `cd cloudflare && npx wrangler deploy` (prompts a one-time
-  `wrangler login`).
+```sh
+cd cloudflare
+npx wrangler deploy   # prompts a one-time `wrangler login`
+```
+
+### Why a service binding, not a plain fetch()
+
+`worker.js` calls `env.SITE.fetch(...)` rather than `fetch("https://step-
+pyramid...workers.dev/...")`. Cloudflare blocks a Worker calling `fetch()`
+on another Worker's own `*.workers.dev` URL within the same account (a
+documented loop/SSRF guard) — it silently 404s, which looks like a broken
+deploy rather than a permissions issue. `wrangler.toml`'s `[[services]]`
+block declares the binding; if you renamed the site project in step 1,
+update `service` there to match.
 
 ## 3. Route it under your domain
 
 Dashboard → your `oliverbarwell.com` zone → **Workers Routes** → add two
-routes, both pointing at the Worker from step 2:
+routes, both pointing at `step-pyramid-mount`:
 
-| Route | Worker |
-|---|---|
-| `oliverbarwell.com/step-pyramid` | step-pyramid-mount |
-| `oliverbarwell.com/step-pyramid/*` | step-pyramid-mount |
+| Route |
+|---|
+| `oliverbarwell.com/step-pyramid` |
+| `oliverbarwell.com/step-pyramid/*` |
 
-(Two entries because Cloudflare route globs don't cover "the path itself or
-anything under it" in one pattern.)
+Both are needed even though the canonical URL has no trailing slash: the
+Worker needs to see `/step-pyramid/` too, so it can 301-redirect it into
+the canonical form instead of silently serving the same page at two URLs.
 
 This only works if `oliverbarwell.com` is proxied (orange cloud) in DNS —
 Worker Routes never see traffic for a grey-clouded (DNS-only) record. If
@@ -51,14 +61,15 @@ your main site is already served through Cloudflare, this is already true.
 
 ## 4. Check it
 
-- `https://www.oliverbarwell.com/step-pyramid/` loads the solver
-- `https://www.oliverbarwell.com/step-pyramid/?n=3` loads the 3-layer mode
+- `https://www.oliverbarwell.com/step-pyramid` loads the solver
+- `https://www.oliverbarwell.com/step-pyramid/` 301s to the URL above
+- `https://www.oliverbarwell.com/step-pyramid?n=3` loads the 3-layer mode
   (confirms the query string survives the proxy)
 - Your main site at `/` and everywhere else is completely untouched — the
   Worker only ever sees requests starting with `/step-pyramid`
 
 ## Updating later
 
-Push to this repo's `main` branch → auto-deploys → live immediately, no
-Worker redeploy needed (the Worker just proxies, it has no cached copy of
-the page).
+Push to this repo's `main` branch → the site project auto-deploys → live
+immediately. The mount Worker itself only needs redeploying if you change
+`cloudflare/worker.js` or `wrangler.toml`.

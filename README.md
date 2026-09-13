@@ -20,7 +20,7 @@ python3 -m http.server 8000
 ## Deploying
 
 Deploys as its own Cloudflare Pages project — no build command, output
-directory `/`. To mount it at `oliverbarwell.com/step-pyramid/` instead of
+directory `/`. To mount it at `oliverbarwell.com/step-pyramid` instead of
 a `*.pages.dev` subdomain, without merging this repo into the main site's,
 see [`cloudflare/README.md`](cloudflare/README.md) (a small Worker proxies
 the subpath to this Pages deployment; both free tier).
@@ -57,5 +57,5 @@ solves correctly no matter which way you were holding it.
 ## SEO
 
 `robots.txt` and `sitemap.xml` are scoped to this one page, assuming it's
-deployed at `https://www.oliverbarwell.com/step-pyramid/`. Update the path
+deployed at `https://www.oliverbarwell.com/step-pyramid`. Update the path
 in both files (and the `<head>` of `index.html`) if deployed elsewhere.
