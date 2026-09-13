@@ -1,22 +1,27 @@
 # Deploying under oliverbarwell.com/step-pyramid/
 
 This repo stays separate from your main site's repo. It deploys as its own
-Cloudflare Pages project, and a small Worker mounts it at `/step-pyramid/`
-on your main domain. Everything here is free tier: Pages (unlimited static
+Cloudflare project, and a small Worker mounts it at `/step-pyramid/` on
+your main domain. Everything here is free tier: static hosting (unlimited
 requests) + Workers (100,000 requests/day).
 
-## 1. Deploy this repo as a Pages project
+## 1. Deploy this repo as its own site
 
-Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-→ pick this repo.
+Dashboard → **Workers & Pages** → **Create** → **Connect to Git** → pick
+this repo.
 
 - Build command: *(leave blank — it's plain static HTML)*
 - Build output directory: `/`
-- Project name: `step-pyramid` *(if you pick something else, update
-  `UPSTREAM` in `worker.js` to match its `*.pages.dev` hostname)*
+- Project name: `step-pyramid` *(if you pick something else, or Cloudflare
+  assigns a different hostname than expected, update `UPSTREAM` in
+  `worker.js` to match)*
 
-Deploy. You'll get `https://step-pyramid.pages.dev` — check it loads before
-continuing.
+Cloudflare's dashboard currently offers two flows here — classic **Pages**
+(→ `*.pages.dev`) or the newer **Workers with static assets** (→
+`*.workers.dev`, under your account's workers.dev subdomain, e.g.
+`step-pyramid.<your-subdomain>.workers.dev`). Either works fine for this;
+just note the real hostname it lands on and make sure `UPSTREAM` in
+`worker.js` matches exactly — check it loads before continuing.
 
 ## 2. Publish the Worker
 
@@ -54,6 +59,6 @@ your main site is already served through Cloudflare, this is already true.
 
 ## Updating later
 
-Push to this repo's `main` branch → Pages auto-deploys → live immediately,
-no Worker redeploy needed (the Worker just proxies, it has no cached copy
-of the page).
+Push to this repo's `main` branch → auto-deploys → live immediately, no
+Worker redeploy needed (the Worker just proxies, it has no cached copy of
+the page).

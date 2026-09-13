@@ -1,13 +1,15 @@
 /**
- * Serves this repo's Cloudflare Pages deployment under a subpath of the main
- * site, e.g. https://www.oliverbarwell.com/step-pyramid/ -- Cloudflare Pages
- * has no built-in way to stitch a second, separately-deployed project under
- * an existing domain's path, so a small Worker fetches from the Pages
- * project and relays the response as if it lived at that path natively.
+ * Serves this repo's Cloudflare deployment under a subpath of the main
+ * site, e.g. https://www.oliverbarwell.com/step-pyramid/ -- there's no
+ * built-in way to stitch a second, separately-deployed project under an
+ * existing domain's path, so a small Worker fetches from that deployment
+ * and relays the response as if it lived at that path natively.
  *
  * Setup (see cloudflare/README.md for the full walkthrough):
- *   1. Deploy this repo as its own Cloudflare Pages project. Note the
- *      *.pages.dev hostname it gets assigned and put it in UPSTREAM below.
+ *   1. Deploy this repo as its own Cloudflare project (Pages, or the
+ *      newer Workers-with-static-assets -- either lands on a
+ *      *.pages.dev or *.workers.dev hostname). Put that hostname in
+ *      UPSTREAM below.
  *   2. Publish this file as a Worker (dashboard paste, or `wrangler deploy`
  *      from this folder).
  *   3. Add two Routes on the oliverbarwell.com zone pointing at that
@@ -18,7 +20,7 @@
  * Worker Routes only intercept proxied traffic.
  */
 
-const UPSTREAM = 'https://step-pyramid.pages.dev';
+const UPSTREAM = 'https://step-pyramid.oliver-j-barwell.workers.dev';
 const MOUNT_PATH = '/step-pyramid';
 
 export default {
