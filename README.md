@@ -19,11 +19,16 @@ python3 -m http.server 8000
 
 ## Deploying
 
-Deploys as its own Cloudflare Pages project — no build command, output
-directory `/`. To mount it at `oliverbarwell.com/step-pyramid` instead of
-a `*.pages.dev` subdomain, without merging this repo into the main site's,
-see [`cloudflare/README.md`](cloudflare/README.md) (a small Worker proxies
-the subpath to this Pages deployment; both free tier).
+Deploys as its own Cloudflare project — no build command, output directory
+`/`. `wrangler.jsonc` sets `not_found_handling: "single-page-application"`,
+which is required: without it, this deployment 404s on any request
+carrying a query string (including `?n=3`), since there's no Worker script
+to fall back to `index.html` when the built-in asset matcher doesn't
+recognise the exact request. To mount it at `oliverbarwell.com/step-pyramid`
+instead of a `*.pages.dev`/`*.workers.dev` subdomain, without merging this
+repo into the main site's, see
+[`cloudflare/README.md`](cloudflare/README.md) (a small Worker proxies the
+subpath to this deployment; both free tier).
 
 ## How the solver works
 

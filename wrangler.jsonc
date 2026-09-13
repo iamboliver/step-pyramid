@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "step-pyramid",
+  // Set this to today's date if you ever bump it
+  "compatibility_date": "2026-09-11",
+  "assets": {
+    "directory": ".",
+    // This site is a single index.html that reads its mode from
+    // location.search (?n=3). Without this, any request the built-in
+    // asset matcher doesn't recognise as an exact file -- including,
+    // apparently, any request carrying a query string at all -- 404s
+    // instead of falling back to index.html. See cloudflare/README.md.
+    "not_found_handling": "single-page-application"
+  }
+}
