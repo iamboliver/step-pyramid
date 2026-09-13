@@ -5,7 +5,7 @@ app works out the moves and walks you through them with a large interactive
 3D guide for every turn. Supports both the standard 3-layer Pyraminx and the
 4-layer Master Pyraminx.
 
-One static page, no build step: `pyraminx.html`.
+One static page, no build step: `index.html`.
 
 ## Running locally
 
@@ -13,9 +13,17 @@ Any static file server works, for example:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000/pyraminx.html
-#   or    http://localhost:8000/pyraminx.html?n=3  for the 3-layer puzzle
+# then open http://localhost:8000/
+#   or    http://localhost:8000/?n=3  for the 3-layer puzzle
 ```
+
+## Deploying
+
+Deploys as its own Cloudflare Pages project — no build command, output
+directory `/`. To mount it at `oliverbarwell.com/step-pyramid/` instead of
+a `*.pages.dev` subdomain, without merging this repo into the main site's,
+see [`cloudflare/README.md`](cloudflare/README.md) (a small Worker proxies
+the subpath to this Pages deployment; both free tier).
 
 ## How the solver works
 
@@ -50,4 +58,4 @@ solves correctly no matter which way you were holding it.
 
 `robots.txt` and `sitemap.xml` are scoped to this one page, assuming it's
 deployed at `https://www.oliverbarwell.com/step-pyramid/`. Update the path
-in both files (and the `<head>` of `pyraminx.html`) if deployed elsewhere.
+in both files (and the `<head>` of `index.html`) if deployed elsewhere.

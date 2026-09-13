@@ -1,0 +1,15 @@
+# Optional: deploy worker.js via the Wrangler CLI instead of pasting it into
+# the dashboard. From this folder: `npx wrangler deploy`
+# (requires `npx wrangler login` once, and doesn't need a Cloudflare account
+# upgrade -- Workers has a free tier: 100,000 requests/day.)
+
+name = "step-pyramid-mount"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# Routes can also be set here instead of in the dashboard -- uncomment and
+# fill in once the zone is confirmed proxied (orange-cloud) in Cloudflare DNS.
+# routes = [
+#   { pattern = "oliverbarwell.com/step-pyramid", zone_name = "oliverbarwell.com" },
+#   { pattern = "oliverbarwell.com/step-pyramid/*", zone_name = "oliverbarwell.com" }
+# ]
