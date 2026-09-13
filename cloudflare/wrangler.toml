@@ -7,6 +7,16 @@ name = "step-pyramid-mount"
 main = "worker.js"
 compatibility_date = "2024-09-01"
 
+# Required: lets this Worker invoke the actual site Worker directly, in-
+# process. A plain fetch() to its *.workers.dev URL is blocked by Cloudflare
+# (Worker -> Worker fetch over workers.dev/routes on the same account isn't
+# allowed without a service binding) -- see the comment in worker.js.
+# `service` must match the deployed Worker's script name exactly (check with
+# `npx wrangler deployments list` or the dashboard if unsure).
+[[services]]
+binding = "SITE"
+service = "step-pyramid"
+
 # Routes can also be set here instead of in the dashboard -- uncomment and
 # fill in once the zone is confirmed proxied (orange-cloud) in Cloudflare DNS.
 # routes = [

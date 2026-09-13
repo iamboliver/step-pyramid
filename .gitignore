@@ -3,3 +3,4 @@
 scratchpad/
 .wrangler/
 cloudflare/.wrangler/
+.claude/
