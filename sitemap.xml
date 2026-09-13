@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap entries for these two pages only. If oliverbarwell.com already has a
+  sitemap.xml, add these <url> entries into it rather than deploying this file
+  as-is -- a site should have one sitemap at https://www.oliverbarwell.com/sitemap.xml
+  (or one sitemap index referencing several).
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.oliverbarwell.com/step-pyramid/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.oliverbarwell.com/worlds/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>

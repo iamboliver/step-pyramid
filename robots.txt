@@ -1,0 +1,11 @@
+# robots.txt for these two pages, assuming they're deployed under
+# https://www.oliverbarwell.com/step-pyramid/ and https://www.oliverbarwell.com/worlds/
+#
+# If oliverbarwell.com already has a robots.txt, merge this into it rather
+# than replacing it wholesale -- a site has exactly one robots.txt, at
+# https://www.oliverbarwell.com/robots.txt
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.oliverbarwell.com/sitemap.xml
