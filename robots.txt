@@ -1,5 +1,5 @@
-# robots.txt for these two pages, assuming they're deployed under
-# https://www.oliverbarwell.com/step-pyramid/ and https://www.oliverbarwell.com/worlds/
+# robots.txt for this page, assuming it's deployed under
+# https://www.oliverbarwell.com/step-pyramid/
 #
 # If oliverbarwell.com already has a robots.txt, merge this into it rather
 # than replacing it wholesale -- a site has exactly one robots.txt, at
