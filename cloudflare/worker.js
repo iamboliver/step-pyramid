@@ -23,9 +23,10 @@
  *   2. Publish this file as a Worker via `wrangler deploy` from this
  *      folder (the service binding needs wrangler.toml, so dashboard
  *      paste alone won't configure it -- CLI or dashboard Bindings UI).
- *   3. Add two Routes on the oliverbarwell.com zone pointing at that
- *      Worker: `oliverbarwell.com/step-pyramid` and
- *      `oliverbarwell.com/step-pyramid/*`.
+ *   3. Add one Route on the oliverbarwell.com zone pointing at that
+ *      Worker: `oliverbarwell.com/step-pyramid*` (no slash before the *
+ *      -- an exact, non-wildcard route doesn't reliably match once a
+ *      query string is appended; see cloudflare/README.md step 3).
  *
  * Requires the zone to be proxied (orange-cloud) in Cloudflare DNS --
  * Worker Routes only intercept proxied traffic.

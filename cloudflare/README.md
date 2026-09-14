@@ -43,21 +43,32 @@ update `service` there to match.
 
 ## 3. Route it under your domain
 
-Dashboard → your `oliverbarwell.com` zone → **Workers Routes** → add two
-routes, both pointing at `step-pyramid-mount`:
+Dashboard → your `oliverbarwell.com` zone → **Workers Routes** → add one
+route pointing at `step-pyramid-mount`:
 
-| Route |
-|---|
-| `oliverbarwell.com/step-pyramid` |
-| `oliverbarwell.com/step-pyramid/*` |
+```
+oliverbarwell.com/step-pyramid*
+```
 
-Both are needed even though the canonical URL has no trailing slash: the
-Worker needs to see `/step-pyramid/` too, so it can 301-redirect it into
-the canonical form instead of silently serving the same page at two URLs.
+No slash before the `*`. This single pattern covers `/step-pyramid`,
+`/step-pyramid/`, and `/step-pyramid/anything` -- including with a query
+string, which an exact (non-wildcard) route pattern does not reliably
+match: `oliverbarwell.com/step-pyramid` as a standalone Route matched fine
+with no query string but 404'd (before even reaching the Worker) the
+moment one was appended, e.g. `?n=3`. Confirmed by testing fresh,
+never-cached URLs directly against the deployment through the Cloudflare
+API -- not a caching artifact. Two separate routes (exact path + `/*`
+wildcard) was the original setup here and hit exactly this gap; one
+`step-pyramid*` pattern does not.
 
 This only works if `oliverbarwell.com` is proxied (orange cloud) in DNS —
 Worker Routes never see traffic for a grey-clouded (DNS-only) record. If
 your main site is already served through Cloudflare, this is already true.
+
+Trade-off: this pattern also matches an unrelated path like
+`/step-pyramid-anything-else` (there's no way to say "this path or
+anything under it" without also allowing that). Fine for a small personal
+site where nothing else starts with that string.
 
 ## 4. Check it
 
