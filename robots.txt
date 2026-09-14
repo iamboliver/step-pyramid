@@ -1,11 +1,21 @@
-# robots.txt for this page, assuming it's deployed under
-# https://www.oliverbarwell.com/step-pyramid
+# This file has NO effect on real crawl behaviour: it deploys as part of
+# the step-pyramid site, so it only lives at
+# https://oliverbarwell.com/step-pyramid/robots.txt -- not at the zone root
+# (https://oliverbarwell.com/robots.txt), which is the only location a
+# crawler ever checks. That path is already serving oliverbarwell.com's own
+# robots.txt (Cloudflare's managed "Content Signals" file, generated at the
+# zone level, outside this repo). Keeping this file for documentation only.
 #
-# If oliverbarwell.com already has a robots.txt, merge this into it rather
-# than replacing it wholesale -- a site has exactly one robots.txt, at
-# https://www.oliverbarwell.com/robots.txt
+# Worth knowing: that zone-level file currently Disallows several AI
+# crawlers site-wide (GPTBot, ClaudeBot, Google-Extended, CCBot, and
+# others) via Content-Signal: ai-train=no, while still allowing regular
+# search indexing (Googlebot, Bingbot, etc. are not blocked). That's a
+# domain-wide policy set outside this repo, not something to change here --
+# flagging in case it's not the intended setting for this specific page (it
+# means this solver won't surface in AI-generated answers/summaries that
+# respect those signals, only in regular search results).
 
 User-agent: *
 Allow: /
 
-Sitemap: https://www.oliverbarwell.com/sitemap.xml
+Sitemap: https://oliverbarwell.com/step-pyramid/sitemap.xml

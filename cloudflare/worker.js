@@ -1,14 +1,14 @@
 /**
  * Serves this repo's Cloudflare deployment under a subpath of the main
- * site, e.g. https://www.oliverbarwell.com/step-pyramid -- there's no
+ * site, e.g. https://oliverbarwell.com/step-pyramid -- there's no
  * built-in way to stitch a second, separately-deployed project under an
  * existing domain's path, so a small Worker relays requests to that
  * deployment as if it lived at that path natively.
  *
  * Canonical URL has no trailing slash (/step-pyramid, not /step-pyramid/).
- * The two Routes below both need to exist so this Worker sees the slash
- * form too and can 301 it into the canonical one -- otherwise both URLs
- * would serve identical content, which is a duplicate-content smell.
+ * The wildcard Route below still routes the slash form here too, so this
+ * Worker can 301 it into the canonical one -- otherwise both URLs would
+ * serve identical content, which is a duplicate-content smell.
  *
  * Uses a Service Binding (env.SITE, bound in wrangler.toml) rather than a
  * plain fetch() to the *.workers.dev hostname. Cloudflare blocks Worker ->

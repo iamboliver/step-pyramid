@@ -61,6 +61,23 @@ solves correctly no matter which way you were holding it.
 
 ## SEO
 
-`robots.txt` and `sitemap.xml` are scoped to this one page, assuming it's
-deployed at `https://www.oliverbarwell.com/step-pyramid`. Update the path
-in both files (and the `<head>` of `index.html`) if deployed elsewhere.
+Live at `https://oliverbarwell.com/step-pyramid` (canonical is the apex
+domain -- `www.oliverbarwell.com` 301s into it, so canonical/OG/JSON-LD
+urls in `index.html` all point at the non-www form). Update every URL in
+`index.html`, `robots.txt`, and `sitemap.xml` if deployed elsewhere.
+
+- `robots.txt` and `sitemap.xml` in this repo only actually deploy under
+  `/step-pyramid/`, e.g. `oliverbarwell.com/step-pyramid/robots.txt` --
+  **not** at the zone root, which is the only place a crawler looks. The
+  real `oliverbarwell.com/robots.txt` is Cloudflare's own zone-level
+  managed file, outside this repo; it already Disallows several AI
+  crawlers (GPTBot, ClaudeBot, Google-Extended, ...) site-wide while
+  allowing normal search indexing. See the comment in `robots.txt` for
+  detail. Submit `sitemap.xml`'s real URL directly in Search Console
+  rather than relying on discovery, since nothing links to it.
+- No `og:image`/`twitter:image` yet -- there's no real screenshot asset,
+  and a missing one silently returns the HTML page instead of a 404
+  (`not_found_handling: "single-page-application"`, see above), which
+  would be worse than no image tag at all for link previews. Add a real
+  1200x630 image at `/step-pyramid-og.png` and reinstate the tags in
+  `index.html` once it exists.

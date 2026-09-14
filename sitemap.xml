@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Sitemap entries for these two pages only. If oliverbarwell.com already has a
-  sitemap.xml, add these <url> entries into it rather than deploying this file
-  as-is -- a site should have one sitemap at https://www.oliverbarwell.com/sitemap.xml
-  (or one sitemap index referencing several).
+  This file deploys as part of the step-pyramid site, so it only lives at
+  https://oliverbarwell.com/step-pyramid/sitemap.xml -- NOT at the zone root
+  (https://oliverbarwell.com/sitemap.xml, which 404s: this repo doesn't own
+  that path, the main site's own deployment does). That also means nothing
+  discovers it automatically; submit the URL above directly in Google
+  Search Console. See README.md's SEO section.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.oliverbarwell.com/step-pyramid</loc>
+    <loc>https://oliverbarwell.com/step-pyramid</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

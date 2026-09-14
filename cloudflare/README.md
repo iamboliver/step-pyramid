@@ -72,9 +72,9 @@ site where nothing else starts with that string.
 
 ## 4. Check it
 
-- `https://www.oliverbarwell.com/step-pyramid` loads the solver
-- `https://www.oliverbarwell.com/step-pyramid/` 301s to the URL above
-- `https://www.oliverbarwell.com/step-pyramid?n=3` loads the 3-layer mode
+- `https://oliverbarwell.com/step-pyramid` loads the solver
+- `https://oliverbarwell.com/step-pyramid/` 301s to the URL above
+- `https://oliverbarwell.com/step-pyramid?n=3` loads the 3-layer mode
   (confirms the query string survives the proxy)
 - Your main site at `/` and everywhere else is completely untouched — the
   Worker only ever sees requests starting with `/step-pyramid`
