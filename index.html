@@ -7,18 +7,21 @@
   <meta name="description" content="Get your Pyraminx solution instantly: colour in your scramble, follow a step-by-step 3D guide. Works for the standard 3-layer and 4-layer Master Pyraminx." />
   <link rel="canonical" href="https://oliverbarwell.com/step-pyramid" />
 
-  <!-- Open Graph / social previews. No og:image/twitter:image yet -- there's
-       no real image asset to point at, and a broken one (404, or worse,
-       silently served as HTML by the SPA fallback) is worse than none.
-       Add a real 1200x630 screenshot at /step-pyramid-og.png and reinstate
-       og:image + twitter:image (twitter:card back to summary_large_image)
-       once it exists. -->
+  <!-- Open Graph / social previews. og.png is rendered from tools/og/card.html
+       (tools/og/render.sh). It lives at /step-pyramid/og.png, inside the
+       mount path: /step-pyramid-og.png would be caught by the mount Worker's
+       route and never reach this deployment. -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Oliver Barwell" />
   <meta property="og:title" content="Step Pyramid — Pyraminx Solver &amp; Solution" />
   <meta property="og:description" content="Get your Pyraminx solution instantly: colour in your scramble and follow a step-by-step 3D guide. Supports the standard 3-layer Pyraminx and the 4-layer Master Pyraminx." />
   <meta property="og:url" content="https://oliverbarwell.com/step-pyramid" />
-  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://oliverbarwell.com/step-pyramid/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Step Pyramid, a free Pyraminx solver: a scrambled Pyraminx face in four colours." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://oliverbarwell.com/step-pyramid/og.png" />
   <meta name="twitter:title" content="Step Pyramid — Pyraminx Solver &amp; Solution" />
   <meta name="twitter:description" content="Get your Pyraminx solution instantly: colour in your scramble and follow a step-by-step 3D guide." />
 
