@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Solve a Pyraminx: Beginner's Guide, Step by Step</title>
+  <meta name="description" content="Learn to solve a Pyraminx in four stages: tips, corners, first layer and last layer. Only four short move sequences to learn, with diagrams and a cheat sheet." />
+  <link rel="canonical" href="https://oliverbarwell.com/step-pyramid/how-to-solve" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Oliver Barwell" />
+  <meta property="og:title" content="How to Solve a Pyraminx: Beginner's Guide" />
+  <meta property="og:description" content="Four stages, four short move sequences. A step-by-step beginner's method for the standard Pyraminx, with diagrams and a cheat sheet." />
+  <meta property="og:url" content="https://oliverbarwell.com/step-pyramid/how-to-solve" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="How to Solve a Pyraminx: Beginner's Guide" />
+  <meta name="twitter:description" content="Four stages, four short move sequences. A step-by-step beginner's method for the standard Pyraminx." />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%BA%3C/text%3E%3C/svg%3E" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to solve a Pyraminx: a beginner's guide",
+    "description": "A four-stage beginner's method for the standard 3-layer Pyraminx: tips, corners, first layer and last layer, using four short move sequences.",
+    "url": "https://oliverbarwell.com/step-pyramid/how-to-solve",
+    "mainEntityOfPage": "https://oliverbarwell.com/step-pyramid/how-to-solve",
+    "datePublished": "2026-11-02",
+    "dateModified": "2026-11-02",
+    "author": { "@type": "Person", "name": "Oliver Barwell", "url": "https://oliverbarwell.com/" },
+    "publisher": { "@type": "Person", "name": "Oliver Barwell", "url": "https://oliverbarwell.com/" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Oliver Barwell", "item": "https://oliverbarwell.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Step Pyramid", "item": "https://oliverbarwell.com/step-pyramid" },
+      { "@type": "ListItem", "position": 3, "name": "How to solve a Pyraminx", "item": "https://oliverbarwell.com/step-pyramid/how-to-solve" }
+    ]
+  }
+  </script>
+
+  <style>
+    /* Same tokens as the solver (index.html) so the two read as one site. */
+    :root {
+      --bg: #0a0e1a;
+      --card-bg: rgba(20, 26, 46, 0.92);
+      --card-border: rgba(255, 255, 255, 0.14);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --blue: #2563eb;
+      --red: #ef4444;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --empty: #334155;
+      --accent: #7c3aed;
+      --accent-text: #c4b5fd;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1a2342 0%, #0a0e1a 70%) no-repeat, #0a0e1a;
+      color: var(--text-muted);
+      line-height: 1.65;
+      padding: 1rem 1rem 3rem;
+    }
+
+    .page {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    a { color: var(--accent-text); text-underline-offset: 0.15em; }
+    a:hover { color: var(--text); }
+    a:focus-visible, .btn:focus-visible {
+      outline: 2px solid var(--accent-text);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .crumbs {
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+    .crumbs ol { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .crumbs li + li::before { content: "/"; margin-right: 0.4rem; color: var(--empty); }
+    .crumbs a { color: var(--text-muted); }
+    .crumbs [aria-current] { color: var(--text); }
+
+    h1 {
+      color: var(--text);
+      font-size: clamp(2rem, 6vw, 2.6rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+
+    .lede {
+      font-size: 1.12rem;
+      color: #cbd5e1;
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      color: var(--text);
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      margin: 3rem 0 0.9rem;
+      scroll-margin-top: 1rem;
+    }
+
+    h3 {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin: 1.6rem 0 0.5rem;
+    }
+
+    p, ul, ol { margin-bottom: 1rem; }
+    ul, ol { padding-left: 1.3rem; }
+    li { margin-bottom: 0.45rem; }
+    li::marker { color: var(--text-muted); }
+    strong { color: var(--text); }
+
+    .step-label {
+      display: block;
+      color: var(--accent-text);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    /* Callout to the solver: the one boxed element on the page. */
+    .solver-cta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem 1.5rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+    .solver-cta p { margin: 0; flex: 1 1 18rem; }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #6d28d9; color: #fff; }
+
+    .toc {
+      border-top: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 0 0.4rem;
+      margin: 2rem 0 0;
+    }
+    .toc h2 { margin: 0 0 0.5rem; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+    .toc ol { columns: 2 14rem; column-gap: 2rem; }
+    .toc li { break-inside: avoid; }
+
+    /* Move sequences */
+    .alg {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      vertical-align: middle;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .alg kbd {
+      font: inherit;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: 0.3rem 0.45rem;
+      min-width: 1.8rem;
+      text-align: center;
+    }
+    .alg-block {
+      display: block;
+      margin: 0.75rem 0 1.1rem;
+    }
+    .alg-block .alg { font-size: 1.15rem; }
+
+    /* Diagrams */
+    figure {
+      margin: 1.25rem 0 1.5rem;
+    }
+    figure svg {
+      display: block;
+      width: 100%;
+      max-width: 220px;
+      height: auto;
+      margin: 0 auto;
+    }
+    figcaption {
+      text-align: center;
+      font-size: 0.88rem;
+      margin-top: 0.6rem;
+    }
+    .fig-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    .fig-pair figure { margin: 0; }
+    .fig-pair figcaption .alg { margin-top: 0.4rem; }
+
+    .st { stroke: var(--bg); stroke-width: 3.5; stroke-linejoin: round; }
+    .st-blank  { fill: #1e293b; }
+    .st-tip    { fill: #e2e8f0; }
+    .st-corner { fill: var(--accent); }
+    .st-edge   { fill: #475569; }
+    .st-blue   { fill: var(--blue); }
+    .st-red    { fill: var(--red); }
+    .st-green  { fill: var(--green); }
+    .st-target { fill: #1e293b; stroke: var(--text-muted); stroke-dasharray: 5 4; stroke-width: 2; }
+    .vertex-label { fill: var(--text); font: 800 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-anchor: middle; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.4rem 1.1rem;
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0;
+    }
+    .legend li { display: flex; align-items: center; gap: 0.4rem; margin: 0; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.5rem 0 1rem;
+      font-size: 0.95rem;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: middle;
+      padding: 0.75rem 0.75rem 0.75rem 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+    th { color: var(--text); font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    td:last-child { white-space: nowrap; padding-right: 0; }
+
+    dt { color: var(--text); font-weight: 700; margin-top: 1.2rem; }
+    dd { margin: 0.3rem 0 0; }
+
+    footer {
+      margin-top: 3.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--card-border);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 520px) {
+      .fig-pair { grid-template-columns: 1fr; }
+      td:last-child { white-space: normal; }
+      .solver-cta .btn { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/">Oliver Barwell</a></li>
+        <li><a href="/step-pyramid?n=3">Step Pyramid</a></li>
+        <li><span aria-current="page">How to solve a Pyraminx</span></li>
+      </ol>
+    </nav>
+
+    <main>
+      <h1>How to solve a Pyraminx</h1>
+      <p class="lede">
+        A beginner's method for the standard Pyraminx, in four stages. There are
+        only four short move sequences to learn, and two of them are mirror images
+        of each other.
+      </p>
+
+      <div class="solver-cta">
+        <p>Just want your puzzle solved? Colour in your scramble and the solver walks you through it, turn by turn.</p>
+        <a class="btn" href="/step-pyramid?n=3">Open the solver</a>
+      </div>
+
+      <nav class="toc" aria-labelledby="toc-heading">
+        <h2 id="toc-heading">On this page</h2>
+        <ol>
+          <li><a href="#pieces">Know the pieces</a></li>
+          <li><a href="#notation">Reading the moves</a></li>
+          <li><a href="#tips">Step 1: Twist the tips</a></li>
+          <li><a href="#corners">Step 2: Line up the corners</a></li>
+          <li><a href="#first-layer">Step 3: Solve the first layer</a></li>
+          <li><a href="#last-layer">Step 4: Solve the last layer</a></li>
+          <li><a href="#cheat-sheet">Cheat sheet</a></li>
+          <li><a href="#faq">Common questions</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="pieces">Know the pieces</h2>
+      <p>A standard Pyraminx has 14 pieces that move, in three kinds:</p>
+      <ul>
+        <li><strong>4 tips</strong>, the small pyramids at the points. Each one
+          twists on its own without disturbing anything else, which makes them the
+          easiest part of the puzzle.</li>
+        <li><strong>4 corners</strong>, the larger three-coloured pieces just under
+          the tips. They spin in place but never leave their point. Some guides call
+          them centres.</li>
+        <li><strong>6 edges</strong>, the two-coloured pieces between the corners.
+          They move all around the puzzle, so this is where the real solving
+          happens.</li>
+      </ul>
+
+      <figure>
+        <svg viewBox="0 0 200 184" role="img" aria-labelledby="fig-pieces-cap">
+          <polygon class="st st-tip" points="100.0,14.0 70.0,66.0 130.0,66.0"/>
+          <polygon class="st st-edge" points="70.0,66.0 40.0,117.9 100.0,117.9"/>
+          <polygon class="st st-edge" points="130.0,66.0 100.0,117.9 160.0,117.9"/>
+          <polygon class="st st-corner" points="70.0,66.0 130.0,66.0 100.0,117.9"/>
+          <polygon class="st st-tip" points="40.0,117.9 10.0,169.9 70.0,169.9"/>
+          <polygon class="st st-edge" points="100.0,117.9 70.0,169.9 130.0,169.9"/>
+          <polygon class="st st-tip" points="160.0,117.9 130.0,169.9 190.0,169.9"/>
+          <polygon class="st st-corner" points="40.0,117.9 100.0,117.9 70.0,169.9"/>
+          <polygon class="st st-corner" points="100.0,117.9 160.0,117.9 130.0,169.9"/>
+        </svg>
+        <figcaption id="fig-pieces-cap">One face of the Pyraminx: 3 tips, 3 corners and 3 edges.</figcaption>
+        <ul class="legend" aria-hidden="true">
+          <li><span class="swatch" style="background:#e2e8f0"></span>Tip</li>
+          <li><span class="swatch" style="background:var(--accent)"></span>Corner</li>
+          <li><span class="swatch" style="background:#475569"></span>Edge</li>
+        </ul>
+      </figure>
+
+      <h2 id="notation">Reading the moves</h2>
+      <p>
+        Hold the puzzle with one face towards you and one point straight up. The
+        four points are named <strong>U</strong> (up), <strong>L</strong> (bottom
+        left), <strong>R</strong> (bottom right) and <strong>B</strong> (the point at
+        the back, facing away from you).
+      </p>
+
+      <figure>
+        <svg viewBox="-10 -16 220 214" role="img" aria-labelledby="fig-notation-cap">
+          <polygon class="st st-blank" points="100.0,14.0 70.0,66.0 130.0,66.0"/>
+          <polygon class="st st-blank" points="70.0,66.0 40.0,117.9 100.0,117.9"/>
+          <polygon class="st st-blank" points="130.0,66.0 100.0,117.9 160.0,117.9"/>
+          <polygon class="st st-blank" points="70.0,66.0 130.0,66.0 100.0,117.9"/>
+          <polygon class="st st-blank" points="40.0,117.9 10.0,169.9 70.0,169.9"/>
+          <polygon class="st st-blank" points="100.0,117.9 70.0,169.9 130.0,169.9"/>
+          <polygon class="st st-blank" points="160.0,117.9 130.0,169.9 190.0,169.9"/>
+          <polygon class="st st-blank" points="40.0,117.9 100.0,117.9 70.0,169.9"/>
+          <polygon class="st st-blank" points="100.0,117.9 160.0,117.9 130.0,169.9"/>
+          <text class="vertex-label" x="100" y="4">U</text>
+          <text class="vertex-label" x="4" y="190">L</text>
+          <text class="vertex-label" x="196" y="190">R</text>
+        </svg>
+        <figcaption id="fig-notation-cap">The front face, held point-up. B is the fourth point, hidden behind.</figcaption>
+      </figure>
+
+      <ul>
+        <li>A capital letter on its own, like <span class="alg"><kbd>R</kbd></span>,
+          means turn that point a third of a turn <strong>clockwise</strong>, as if
+          you were looking straight at that point. It turns everything except the
+          face opposite that point.</li>
+        <li>A letter with an apostrophe, like <span class="alg"><kbd>R'</kbd></span>,
+          means the same turn <strong>anticlockwise</strong>.</li>
+        <li>A lowercase letter, like <span class="alg"><kbd>r</kbd></span>, means
+          turn only the tip.</li>
+      </ul>
+      <p>Keep holding the puzzle the same way all the way through a sequence. Only the layers move, not your grip.</p>
+
+      <h2 id="tips"><span class="step-label">Step 1</span>Twist the tips</h2>
+      <p>
+        Twist each tip until its three colours match the corner just below it. A
+        tip only has three positions, so this never takes more than two twists per
+        tip.
+      </p>
+      <p>
+        The tips then stay matched for the rest of the solve, because every move in
+        this guide turns a tip together with its corner.
+      </p>
+
+      <h2 id="corners"><span class="step-label">Step 2</span>Line up the corners</h2>
+      <p>
+        Next, turn the corners so that each face shows one colour in its three
+        corner spots. Ignore the edges for now. They'll get scrambled while you do
+        this, and that's fine.
+      </p>
+      <ol>
+        <li><strong>Find your bottom colour.</strong> The top corner shows three
+          colours. The colour it's missing is your bottom colour.</li>
+        <li><strong>Turn the three bottom points.</strong> Turn
+          <span class="alg"><kbd>L</kbd></span>, <span class="alg"><kbd>R</kbd></span>
+          and <span class="alg"><kbd>B</kbd></span>, each until that corner shows the
+          bottom colour on the bottom face.</li>
+        <li><strong>Turn the top.</strong> Turn <span class="alg"><kbd>U</kbd></span>
+          until the top corner's front colour matches the two corners at the bottom
+          of the front face.</li>
+      </ol>
+      <p>Every face now has matching corners and tips.</p>
+
+      <h2 id="first-layer"><span class="step-label">Step 3</span>Solve the first layer</h2>
+      <p>
+        Now put the three edges around the bottom face in place. Each one has your
+        bottom colour plus one side colour.
+      </p>
+      <ol>
+        <li><strong>Pick an edge.</strong> Find an edge touching the top point that
+          has the bottom colour. Its other colour tells you which face it belongs to.
+          Turn the whole puzzle, keeping the same point up, until the face whose
+          bottom corners are that colour is in front of you.</li>
+        <li><strong>Line it up.</strong> Turn <span class="alg"><kbd>U</kbd></span>
+          until the edge's side colour is on the front face. It will now be at the
+          upper left or the upper right of the front face.</li>
+        <li><strong>Drop it in.</strong> Use the move for where it is. The edge drops
+          into the bottom of the front face with both colours matching.</li>
+      </ol>
+
+      <div class="fig-pair">
+        <figure>
+          <svg viewBox="0 0 200 184" role="img" aria-labelledby="fig-left-cap">
+            <polygon class="st st-blue" points="100.0,14.0 70.0,66.0 130.0,66.0"/>
+            <polygon class="st st-blue" points="70.0,66.0 40.0,117.9 100.0,117.9"/>
+            <polygon class="st st-blank" points="130.0,66.0 100.0,117.9 160.0,117.9"/>
+            <polygon class="st st-blue" points="70.0,66.0 130.0,66.0 100.0,117.9"/>
+            <polygon class="st st-blue" points="40.0,117.9 10.0,169.9 70.0,169.9"/>
+            <polygon class="st st-target" points="100.0,117.9 70.0,169.9 130.0,169.9"/>
+            <polygon class="st st-blue" points="160.0,117.9 130.0,169.9 190.0,169.9"/>
+            <polygon class="st st-blue" points="40.0,117.9 100.0,117.9 70.0,169.9"/>
+            <polygon class="st st-blue" points="100.0,117.9 160.0,117.9 130.0,169.9"/>
+          </svg>
+          <figcaption id="fig-left-cap">
+            Edge at the upper left
+            <span class="alg-block"><span class="alg"><kbd>R</kbd><kbd>U'</kbd><kbd>R'</kbd></span></span>
+          </figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 200 184" role="img" aria-labelledby="fig-right-cap">
+            <polygon class="st st-blue" points="100.0,14.0 70.0,66.0 130.0,66.0"/>
+            <polygon class="st st-blank" points="70.0,66.0 40.0,117.9 100.0,117.9"/>
+            <polygon class="st st-blue" points="130.0,66.0 100.0,117.9 160.0,117.9"/>
+            <polygon class="st st-blue" points="70.0,66.0 130.0,66.0 100.0,117.9"/>
+            <polygon class="st st-blue" points="40.0,117.9 10.0,169.9 70.0,169.9"/>
+            <polygon class="st st-target" points="100.0,117.9 70.0,169.9 130.0,169.9"/>
+            <polygon class="st st-blue" points="160.0,117.9 130.0,169.9 190.0,169.9"/>
+            <polygon class="st st-blue" points="40.0,117.9 100.0,117.9 70.0,169.9"/>
+            <polygon class="st st-blue" points="100.0,117.9 160.0,117.9 130.0,169.9"/>
+          </svg>
+          <figcaption id="fig-right-cap">
+            Edge at the upper right
+            <span class="alg-block"><span class="alg"><kbd>L'</kbd><kbd>U</kbd><kbd>L</kbd></span></span>
+          </figcaption>
+        </figure>
+      </div>
+
+      <p>
+        Repeat for the other two bottom edges. The top corner will turn as you go.
+        That's expected, and you'll fix it in the next step.
+      </p>
+      <h3>If an edge is stuck at the bottom</h3>
+      <p>
+        If none of the edges touching the top point has your bottom colour, one is
+        sitting in the wrong bottom spot or the wrong way round. Hold the puzzle so
+        that edge is at the bottom of the front face, do
+        <span class="alg"><kbd>R</kbd><kbd>U'</kbd><kbd>R'</kbd></span> to lift it
+        out, then carry on from the start of this step.
+      </p>
+
+      <h2 id="last-layer"><span class="step-label">Step 4</span>Solve the last layer</h2>
+      <p>Only the three edges touching the top point are left.</p>
+
+      <h3>1. Line up the top</h3>
+      <p>
+        Turn <span class="alg"><kbd>U</kbd></span> until the top corner matches the
+        faces again.
+      </p>
+
+      <h3>2. Move the edges into place</h3>
+      <p>
+        An edge is in the right place when its two colours match the two faces it
+        sits between, even if they're the wrong way round. The top edges are either
+        all in the right places or none of them are. If none are, do this sequence,
+        which moves all three one place round:
+      </p>
+      <p class="alg-block"><span class="alg"><kbd>R</kbd><kbd>U</kbd><kbd>R'</kbd><kbd>U</kbd><kbd>R</kbd><kbd>U</kbd><kbd>R'</kbd></span></p>
+      <p>If they're still not in place, do it once more.</p>
+
+      <h3>3. Flip the last two</h3>
+      <p>
+        Any edge that's the wrong way round now needs flipping. There are always
+        either none or exactly two. Hold the puzzle so the correct edge is at the
+        back, with the two flipped ones at the upper left and upper right of the
+        front face, and do:
+      </p>
+      <p class="alg-block"><span class="alg"><kbd>R'</kbd><kbd>L</kbd><kbd>R</kbd><kbd>L'</kbd><kbd>U</kbd><kbd>L'</kbd><kbd>U'</kbd><kbd>L</kbd></span></p>
+
+      <figure>
+        <svg viewBox="0 0 200 184" role="img" aria-labelledby="fig-flip-cap">
+          <polygon class="st st-blue" points="100.0,14.0 70.0,66.0 130.0,66.0"/>
+          <polygon class="st st-red" points="70.0,66.0 40.0,117.9 100.0,117.9"/>
+          <polygon class="st st-green" points="130.0,66.0 100.0,117.9 160.0,117.9"/>
+          <polygon class="st st-blue" points="70.0,66.0 130.0,66.0 100.0,117.9"/>
+          <polygon class="st st-blue" points="40.0,117.9 10.0,169.9 70.0,169.9"/>
+          <polygon class="st st-blue" points="100.0,117.9 70.0,169.9 130.0,169.9"/>
+          <polygon class="st st-blue" points="160.0,117.9 130.0,169.9 190.0,169.9"/>
+          <polygon class="st st-blue" points="40.0,117.9 100.0,117.9 70.0,169.9"/>
+          <polygon class="st st-blue" points="100.0,117.9 160.0,117.9 130.0,169.9"/>
+        </svg>
+        <figcaption id="fig-flip-cap">Both upper edges flipped: each shows its side face's colour on the front.</figcaption>
+      </figure>
+
+      <p><strong>That's it. Your Pyraminx is solved.</strong></p>
+
+      <h2 id="cheat-sheet">Cheat sheet</h2>
+      <table>
+        <thead>
+          <tr><th scope="col">When</th><th scope="col">Moves</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>First layer: edge at the upper left of the front face</td>
+            <td><span class="alg"><kbd>R</kbd><kbd>U'</kbd><kbd>R'</kbd></span></td>
+          </tr>
+          <tr>
+            <td>First layer: edge at the upper right of the front face</td>
+            <td><span class="alg"><kbd>L'</kbd><kbd>U</kbd><kbd>L</kbd></span></td>
+          </tr>
+          <tr>
+            <td>Last layer: edges in the wrong places (once or twice)</td>
+            <td><span class="alg"><kbd>R</kbd><kbd>U</kbd><kbd>R'</kbd><kbd>U</kbd><kbd>R</kbd><kbd>U</kbd><kbd>R'</kbd></span></td>
+          </tr>
+          <tr>
+            <td>Last layer: two edges flipped, correct edge at the back</td>
+            <td><span class="alg"><kbd>R'</kbd><kbd>L</kbd><kbd>R</kbd><kbd>L'</kbd><kbd>U</kbd><kbd>L'</kbd><kbd>U'</kbd><kbd>L</kbd></span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Getting faster</h2>
+      <p>
+        Once the method feels natural, try leaving the tips until the very end.
+        They never affect anything else, so it saves looking at them twice. After
+        that, speedcubing methods such as Keyhole and L4E solve more of the puzzle
+        at once, in exchange for learning more sequences.
+      </p>
+
+      <h2 id="faq">Common questions</h2>
+      <dl>
+        <dt>Is there parity on the Pyraminx?</dt>
+        <dd>No. A Pyraminx that came from a solved state can always be finished
+          with the moves above. If any top edges are flipped at the end, there will
+          be exactly two.</dd>
+        <dt>Does it matter which point I hold at the top?</dt>
+        <dd>No. Any point works. Whichever one you choose decides your bottom colour,
+          which is why step 2 starts by reading it off the top corner.</dd>
+        <dt>My edge won't go in. What am I doing wrong?</dt>
+        <dd>Usually one of three things: turning only the tip instead of the whole
+          point, turning the wrong way (clockwise means as seen looking straight at
+          that point), or changing your grip partway through a sequence.</dd>
+        <dt>Does this work for the 4-layer Master Pyraminx?</dt>
+        <dd>No. The Master Pyraminx has extra centre and wing pieces and needs a
+          different method. The <a href="/step-pyramid?n=4">Step Pyramid solver</a>
+          handles it if you want a solution for your scramble.</dd>
+      </dl>
+
+      <div class="solver-cta">
+        <p>Stuck partway? Colour in your puzzle as it is now and the solver will finish it with you.</p>
+        <a class="btn" href="/step-pyramid?n=3">Open the solver</a>
+      </div>
+    </main>
+
+    <footer>
+      <p>Written by <a href="/">Oliver Barwell</a>. Every move sequence on this page was checked against 2,000 random scrambles.</p>
+    </footer>
+  </div>
+  <!-- Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c3fcb419b6a74995a3f8e273bf29abf2"}'></script>
+</body>
+</html>

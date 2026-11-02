@@ -23,7 +23,7 @@ Deploys as its own Cloudflare project with `npx wrangler deploy` from the
 repo root (pushing to `main` doesn't deploy -- see
 [`cloudflare/README.md`](cloudflare/README.md#updating-later)). No build
 step; `.assetsignore` limits what gets published to `index.html`,
-`robots.txt` and `sitemap.xml`. `wrangler.jsonc` sets `not_found_handling: "single-page-application"`,
+`how-to-solve.html`, `robots.txt` and `sitemap.xml`. `wrangler.jsonc` sets `not_found_handling: "single-page-application"`,
 which is required: without it, this deployment 404s on any request
 carrying a query string (including `?n=3`), since there's no Worker script
 to fall back to `index.html` when the built-in asset matcher doesn't
@@ -78,6 +78,13 @@ urls in `index.html` all point at the non-www form). Update every URL in
   allowing normal search indexing. See the comment in `robots.txt` for
   detail. Submit `sitemap.xml`'s real URL directly in Search Console
   rather than relying on discovery, since nothing links to it.
+- `how-to-solve.html` is a hand-solving beginner's guide, served at
+  `/step-pyramid/how-to-solve` (Cloudflare's asset handling drops the
+  `.html`). It's in `sitemap.xml` and linked from the solver's About text
+  and the main site's homepage. `tools/check_guide.py` simulates the
+  puzzle and runs the guide's method, using only the move sequences the
+  page teaches, against 2,000 random scrambles. Re-run it after editing any
+  instruction or sequence on the page.
 - No `og:image`/`twitter:image` yet -- there's no real screenshot asset,
   and a missing one silently returns the HTML page instead of a 404
   (`not_found_handling: "single-page-application"`, see above), which

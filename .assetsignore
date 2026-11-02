@@ -13,3 +13,6 @@ cloudflare/
 node_modules/
 scratchpad/
 *.log
+
+# Dev-only scripts (e.g. the guide checker)
+tools/
