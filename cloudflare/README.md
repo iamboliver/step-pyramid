@@ -90,9 +90,20 @@ npx wrangler deploy   # reads ../wrangler.jsonc, publishes the site
 ```
 
 `wrangler.jsonc` publishes the whole repo folder, so `.assetsignore` is
-what keeps it down to `index.html`, `robots.txt` and `sitemap.xml`. Before
+what keeps it down to the pages, `robots.txt`, `sitemap.xml` and the
+preview images. Before
 it existed, a deploy published `.git`, `.wrangler`'s account cache and the
 rest of the working copy. Add any new repo-only file or folder there.
 
 The mount Worker itself only needs redeploying (from `cloudflare/`) if you
-change `cloudflare/worker.js` or `wrangler.toml`.
+change `cloudflare/worker.js` or `wrangler.toml`:
+
+```sh
+cd cloudflare && npx wrangler deploy
+```
+
+That includes **adding a page**: the Worker only forwards the paths in its
+`PAGES` list and returns a real 404 for anything else, so a new page stays
+a 404 until it's listed there. Add a case to `tools/check_worker.mjs` and
+run it (`node tools/check_worker.mjs`) before deploying. Its route is
+declared in `wrangler.toml`, so redeploying keeps the route in place.

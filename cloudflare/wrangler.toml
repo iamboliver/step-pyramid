@@ -17,12 +17,12 @@ compatibility_date = "2024-09-01"
 binding = "SITE"
 service = "step-pyramid"
 
-# Routes can also be set here instead of in the dashboard -- uncomment and
-# fill in once the zone is confirmed proxied (orange-cloud) in Cloudflare DNS.
+# The route was first added in the dashboard; it's declared here too so every
+# `wrangler deploy` re-asserts it rather than relying on dashboard state.
 # One pattern, no slash before the *: an exact "oliverbarwell.com/step-pyramid"
 # route (no wildcard) does not reliably match once a query string is appended
 # (confirmed: worked with no query, 404'd the moment one was added, even on a
 # fresh/never-cached URL) -- see cloudflare/README.md step 3.
-# routes = [
-#   { pattern = "oliverbarwell.com/step-pyramid*", zone_name = "oliverbarwell.com" }
-# ]
+routes = [
+  { pattern = "oliverbarwell.com/step-pyramid*", zone_name = "oliverbarwell.com" }
+]

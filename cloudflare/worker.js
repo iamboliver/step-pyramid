@@ -34,22 +34,84 @@
 
 const MOUNT_PATH = '/step-pyramid';
 
+// Everything the step-pyramid deployment actually serves, as paths below the
+// mount. Anything else gets a real 404 here: the deployment's SPA fallback
+// (needed for query strings, see wrangler.jsonc) would otherwise answer every
+// unknown path, even /step-pyramid/wp-login.php, with the solver page and a
+// 200, which search engines read as soft 404s. Add new pages here.
+const PAGES = new Set([
+  '/',
+  '/how-to-solve',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/og.png',
+  '/og-guide.png',
+]);
+
+const NOT_FOUND_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page not found</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+           background: #0a0e1a; color: #94a3b8; display: grid; place-items: center;
+           min-height: 100vh; margin: 0; padding: 1rem; text-align: center; line-height: 1.6; }
+    h1 { color: #f8fafc; font-size: 1.6rem; margin: 0 0 0.5rem; }
+    a { color: #c4b5fd; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Page not found</h1>
+    <p>Try the <a href="${MOUNT_PATH}?n=3">Pyraminx solver</a> or the
+      <a href="${MOUNT_PATH}/how-to-solve">beginner's guide</a>.</p>
+  </main>
+</body>
+</html>`;
+
+const notFound = () =>
+  new Response(NOT_FOUND_HTML, {
+    status: 404,
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
+
+const redirect = (url, path) => {
+  url.pathname = path;
+  return Response.redirect(url.toString(), 301);
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Canonicalize away the trailing slash: /step-pyramid/ -> /step-pyramid
-    // (keeping the query string, e.g. ?n=3). Leaves deeper paths alone --
-    // /step-pyramid/foo stays /step-pyramid/foo.
-    if (url.pathname === MOUNT_PATH + '/') {
-      url.pathname = MOUNT_PATH;
-      return Response.redirect(url.toString(), 301);
+    // The route pattern (oliverbarwell.com/step-pyramid*) also matches
+    // look-alikes such as /step-pyramids or /step-pyramid-og.png. Those
+    // aren't under the mount, so there's nothing to serve.
+    if (url.pathname !== MOUNT_PATH && !url.pathname.startsWith(MOUNT_PATH + '/')) {
+      return notFound();
+    }
+
+    // Canonicalize away trailing slashes, keeping the query string (e.g.
+    // ?n=3): /step-pyramid/ -> /step-pyramid, and the same for deeper pages.
+    if (url.pathname.endsWith('/')) {
+      return redirect(url, url.pathname.replace(/\/+$/, ''));
     }
 
     // Strip the mount prefix; whatever's left (plus the original query
-    // string) is forwarded to the target Worker's root.
-    let upstreamPath = url.pathname.slice(MOUNT_PATH.length);
-    if (upstreamPath === '') upstreamPath = '/';
+    // string) is what the target Worker serves.
+    let upstreamPath = url.pathname.slice(MOUNT_PATH.length) || '/';
+
+    // .html spellings of a page redirect to its canonical URL. Left to the
+    // target Worker, its asset handling would redirect to the unprefixed
+    // path (/how-to-solve), which isn't this site.
+    if (upstreamPath.endsWith('.html')) {
+      const page = upstreamPath === '/index.html' ? '/' : upstreamPath.slice(0, -'.html'.length);
+      if (PAGES.has(page)) return redirect(url, page === '/' ? MOUNT_PATH : MOUNT_PATH + page);
+    }
+
+    if (!PAGES.has(upstreamPath)) return notFound();
 
     const upstreamUrl = new URL(upstreamPath, url.origin);
     upstreamUrl.search = url.search;
