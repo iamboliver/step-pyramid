@@ -81,6 +81,18 @@ site where nothing else starts with that string.
 
 ## Updating later
 
-Push to this repo's `main` branch → the site project auto-deploys → live
-immediately. The mount Worker itself only needs redeploying if you change
-`cloudflare/worker.js` or `wrangler.toml`.
+Pushing to `main` does **not** deploy -- the site project isn't connected
+to this repo's Git (a push was confirmed not to redeploy). Deploy by hand
+from the repo root:
+
+```sh
+npx wrangler deploy   # reads ../wrangler.jsonc, publishes the site
+```
+
+`wrangler.jsonc` publishes the whole repo folder, so `.assetsignore` is
+what keeps it down to `index.html`, `robots.txt` and `sitemap.xml`. Before
+it existed, a deploy published `.git`, `.wrangler`'s account cache and the
+rest of the working copy. Add any new repo-only file or folder there.
+
+The mount Worker itself only needs redeploying (from `cloudflare/`) if you
+change `cloudflare/worker.js` or `wrangler.toml`.

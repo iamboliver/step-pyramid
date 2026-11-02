@@ -19,8 +19,11 @@ python3 -m http.server 8000
 
 ## Deploying
 
-Deploys as its own Cloudflare project — no build command, output directory
-`/`. `wrangler.jsonc` sets `not_found_handling: "single-page-application"`,
+Deploys as its own Cloudflare project with `npx wrangler deploy` from the
+repo root (pushing to `main` doesn't deploy -- see
+[`cloudflare/README.md`](cloudflare/README.md#updating-later)). No build
+step; `.assetsignore` limits what gets published to `index.html`,
+`robots.txt` and `sitemap.xml`. `wrangler.jsonc` sets `not_found_handling: "single-page-application"`,
 which is required: without it, this deployment 404s on any request
 carrying a query string (including `?n=3`), since there's no Worker script
 to fall back to `index.html` when the built-in asset matcher doesn't
