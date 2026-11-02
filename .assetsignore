@@ -1,0 +1,15 @@
+# wrangler.jsonc publishes this whole repo folder ("directory": "."), so
+# anything not listed here goes live at oliverbarwell.com/step-pyramid/<path>.
+# Only index.html, robots.txt and sitemap.xml are meant to be public.
+
+# Dotfiles and dot-folders: .git (full history), .wrangler (account cache),
+# .claude, .DS_Store, .gitignore, this file
+.*
+
+# Repo-only docs, config and the separately deployed mount Worker
+README.md
+wrangler.jsonc
+cloudflare/
+node_modules/
+scratchpad/
+*.log
