@@ -103,8 +103,8 @@
       --green: #10b981;
       --yellow: #f59e0b;
       --empty: #334155;
-      --accent: #8b5cf6;
-      --accent-glow: rgba(139, 92, 246, 0.4);
+      --accent: #7c3aed;
+      --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.45);
     }
 
     * {
@@ -135,7 +135,6 @@
       font-weight: 800;
       letter-spacing: -0.02em;
       color: #f8fafc;
-      text-shadow: 0 0 32px rgba(192, 132, 252, 0.35);
       margin-bottom: 0.35rem;
     }
 
@@ -174,7 +173,7 @@
     .mode-btn.active {
       background: var(--accent);
       color: #fff;
-      box-shadow: 0 0 12px var(--accent-glow);
+      box-shadow: var(--shadow-lift);
       cursor: default;
     }
 
@@ -251,7 +250,6 @@
     .dot.active {
       background: var(--accent);
       transform: scale(1.3);
-      box-shadow: 0 0 10px var(--accent);
     }
 
     /* Color Palette Bar */
@@ -281,7 +279,6 @@
 
     .color-chip.active-brush {
       outline: 2px solid #fff;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
       background: rgba(255, 255, 255, 0.15);
     }
 
@@ -335,25 +332,22 @@
       text-transform: uppercase;
       padding: 0.35rem 0.85rem;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.08);
       color: #94a3b8;
-      border: 1px solid rgba(255, 255, 255, 0.1);
       margin-bottom: 0.5rem;
       text-align: center;
       width: 100%;
     }
 
     .bottom-alignment-alert {
-      background: rgba(239, 68, 68, 0.25);
-      border: 2px solid #ef4444;
+      background: rgba(239, 68, 68, 0.22);
       color: #fca5a5;
       font-weight: 800;
       animation: pulseAlert 2s infinite ease-in-out;
     }
 
     @keyframes pulseAlert {
-      0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
-      50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
+      0%, 100% { background: rgba(239, 68, 68, 0.22); }
+      50% { background: rgba(239, 68, 68, 0.4); }
     }
 
     .pyramid-svg-container {
@@ -468,16 +462,16 @@
     }
 
     .btn-solve {
-      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      background: linear-gradient(135deg, #7c3aed, #db2777);
       color: #fff;
       font-size: 1.15rem;
       padding: 0.85rem 2.2rem;
-      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
     }
 
     .btn-solve:hover {
       transform: scale(1.04) translateY(-2px);
-      box-shadow: 0 6px 25px rgba(236, 72, 153, 0.6);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
     }
 
     .btn-secondary {
@@ -529,14 +523,13 @@
     }
 
     .step-badge {
-      background: linear-gradient(135deg, #6366f1, #a855f7);
+      background: linear-gradient(135deg, #4f46e5, #9333ea);
       padding: 0.35rem 1rem;
       border-radius: 9999px;
       font-weight: 800;
       font-size: 0.9rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
     }
 
     .instruction-title {
@@ -556,26 +549,22 @@
       font-size: 1.15rem;
       letter-spacing: 0.03em;
       text-transform: uppercase;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
       margin-top: 0.2rem;
     }
 
     .layer-badge.layer-1 {
-      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      background: linear-gradient(135deg, #0369a1, #0e7490);
       color: #fff;
-      box-shadow: 0 0 22px rgba(6, 182, 212, 0.6);
     }
 
     .layer-badge.layer-2 {
-      background: linear-gradient(135deg, #7c3aed, #c026d3);
+      background: linear-gradient(135deg, #7c3aed, #a21caf);
       color: #fff;
-      box-shadow: 0 0 22px rgba(192, 38, 211, 0.6);
     }
 
     .layer-badge.layer-3 {
-      background: linear-gradient(135deg, #ea580c, #f59e0b);
+      background: linear-gradient(135deg, #c2410c, #b45309);
       color: #fff;
-      box-shadow: 0 0 22px rgba(245, 158, 11, 0.6);
     }
 
     .solution-3d-stage {
@@ -584,11 +573,6 @@
       flex-direction: column;
       align-items: center;
       width: 100%;
-      background: radial-gradient(circle at 50% 50%, rgba(26, 35, 66, 0.7), rgba(10, 14, 26, 0.9));
-      border-radius: 20px;
-      padding: 1.25rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
     }
 
     .canvas-3d-large {
@@ -609,10 +593,8 @@
     }
 
     .hint-card {
-      background: rgba(139, 92, 246, 0.08);
-      border: 1px solid rgba(139, 92, 246, 0.28);
-      border-radius: 14px;
-      padding: 1.15rem 1.4rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 1.15rem;
       width: 100%;
       max-width: 700px;
       line-height: 1.55;
@@ -673,10 +655,8 @@
     .move-list-panel {
       width: 100%;
       max-width: 700px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 0.9rem 1rem 1rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 0.9rem;
     }
 
     .move-list-head {
@@ -754,10 +734,10 @@
     }
 
     .move-chip.current {
-      background: linear-gradient(135deg, var(--accent), #6366f1);
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
       border-color: #fde047;
       color: #fff;
-      box-shadow: 0 0 14px var(--accent-glow);
+      box-shadow: var(--shadow-lift);
       transform: scale(1.12);
     }
 
@@ -775,7 +755,6 @@
       font-size: 2.5rem;
       font-weight: 900;
       color: #10b981;
-      text-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
     }
 
     /* ---- About / FAQ: real crawlable text, kept visually quiet ---- */
@@ -918,7 +897,7 @@
     </div>
 
     <!-- Status Box -->
-    <div class="status-box" id="status-box">
+    <div class="status-box" id="status-box" role="status" aria-live="polite">
       Click any segment to color it!
     </div>
 
@@ -962,7 +941,7 @@
     </div>
 
     <div class="hint-card">
-      <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem; color: #a855f7;">
+      <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem; color: #c4b5fd;">
         🧭 Clear Step-by-Step Instructions:
       </div>
       <div class="grip-step">
@@ -1701,6 +1680,15 @@
       }
     }
 
+    // One-off messages (scramble done, why Solve refused) go in the status box
+    // next to the buttons rather than a blocking alert(). The next edit's
+    // updateTally() replaces them with the live tally.
+    function showStatus(html, color = '#cbd5e1') {
+      const statusBox = document.getElementById('status-box');
+      statusBox.innerHTML = html;
+      statusBox.style.color = color;
+    }
+
     // Helper Presets
     document.getElementById('clear-btn').addEventListener('click', () => {
       if (confirm("Reset all segments to empty?")) {
@@ -1863,7 +1851,7 @@
       update2DSvgColors();
       editor3D.render();
       updateTally();
-      alert(`🎲 Scrambled with ${numMoves} real physical turns! Click 'Solve Pyraminx!' to see the full multi-step solution.`);
+      showStatus(`🎲 <strong>Scrambled with ${numMoves} real physical turns.</strong> Click 'Solve Pyraminx!' to see the full multi-step solution.`);
     });
 
     // ============================================================
@@ -2375,7 +2363,7 @@
       }
 
       if (emptyCount > 0) {
-        alert(`You still have ${emptyCount} empty segments! Please color all 4 sides before clicking Solve.`);
+        showStatus(`⚠️ <strong>You still have ${emptyCount} empty segments.</strong> Colour all 4 sides before clicking Solve.`, '#f87171');
         return;
       }
 
@@ -2385,21 +2373,21 @@
       for (let f = 0; f < 4; f++) for (let t = 0; t < PER_FACE; t++) counts[cubeState[f][t]] = (counts[cubeState[f][t]] || 0) + 1;
       const wrong = Object.keys(counts).filter(c => counts[c] !== PER_FACE);
       if (wrong.length) {
-        alert(`Each colour has to appear exactly ${PER_FACE} times, and right now they don't:\n\n` +
-          Object.keys(counts).map(c => `  ${c}: ${counts[c]} (should be ${PER_FACE})`).join('\n') +
-          "\n\nCheck the tally under the palette and fix the sides that don't match your puzzle.");
+        showStatus(`⚠️ <strong>Each colour has to appear exactly ${PER_FACE} times.</strong> Right now: ` +
+          Object.keys(counts).map(c => `${c} ${counts[c]}`).join(', ') +
+          ". Check the tally under the palette and fix the sides that don't match your puzzle.", '#f87171');
         return;
       }
 
       const result = solvePyraminx(cubeState);
 
       if (!result) {
-        alert("Those colours don't make a real Pyraminx.\n\nEvery piece has to exist exactly once, so a colouring copied down slightly wrong can be impossible to solve. Double-check each side against the puzzle and try again.");
+        showStatus("⚠️ <strong>Those colours don't make a real Pyraminx.</strong> Every piece has to exist exactly once, so a colouring copied down slightly wrong can be impossible to solve. Double-check each side against the puzzle and try again.", '#f87171');
         return;
       }
 
       if (result.moves.length === 0) {
-        alert("🎉 Your Pyraminx is already fully solved! Great job!");
+        showStatus("🎉 <strong>Your Pyraminx is already fully solved!</strong> Great job!", '#34d399');
         return;
       }
 

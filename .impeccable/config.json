@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-11-02T21:30:07.634Z",
+        "reason": "user confirmed 2026-11-02: keep the existing purple/pink identity (chose 'Refine, keep look' over a new palette)"
+      }
+    ]
+  }
+}
