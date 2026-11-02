@@ -27,9 +27,14 @@ loads at its own `*.pages.dev` / `*.workers.dev` URL before continuing.
 editor doesn't read.
 
 ```sh
-cd cloudflare
-npx wrangler deploy   # prompts a one-time `wrangler login`
+# from the repo root
+npx wrangler deploy --config cloudflare/wrangler.toml   # prompts a one-time `wrangler login`
 ```
+
+Always pass `--config`. Wrangler 4 prefers a `wrangler.json`/`.jsonc`
+anywhere up the tree over a `wrangler.toml` in the current folder, so a
+plain `npx wrangler deploy` run inside `cloudflare/` finds the repo root's
+`wrangler.jsonc` and redeploys the *site* instead of this Worker.
 
 ### Why a service binding, not a plain fetch()
 
@@ -95,11 +100,11 @@ preview images. Before
 it existed, a deploy published `.git`, `.wrangler`'s account cache and the
 rest of the working copy. Add any new repo-only file or folder there.
 
-The mount Worker itself only needs redeploying (from `cloudflare/`) if you
+The mount Worker itself only needs redeploying if you
 change `cloudflare/worker.js` or `wrangler.toml`:
 
 ```sh
-cd cloudflare && npx wrangler deploy
+npx wrangler deploy --config cloudflare/wrangler.toml   # from the repo root
 ```
 
 That includes **adding a page**: the Worker only forwards the paths in its

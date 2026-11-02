@@ -1,5 +1,8 @@
 # Optional: deploy worker.js via the Wrangler CLI instead of pasting it into
-# the dashboard. From this folder: `npx wrangler deploy`
+# the dashboard. From the repo root:
+#   npx wrangler deploy --config cloudflare/wrangler.toml
+# (without --config, Wrangler picks up the root wrangler.jsonc and deploys
+# the site instead, even when run from this folder)
 # (requires `npx wrangler login` once, and doesn't need a Cloudflare account
 # upgrade -- Workers has a free tier: 100,000 requests/day.)
 

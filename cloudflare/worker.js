@@ -20,9 +20,10 @@
  * Setup (see cloudflare/README.md for the full walkthrough):
  *   1. Deploy this repo as its own Cloudflare project. Note its Worker/
  *      Pages project name and put it in wrangler.toml's [[services]] block.
- *   2. Publish this file as a Worker via `wrangler deploy` from this
- *      folder (the service binding needs wrangler.toml, so dashboard
- *      paste alone won't configure it -- CLI or dashboard Bindings UI).
+ *   2. Publish this file as a Worker with
+ *      `npx wrangler deploy --config cloudflare/wrangler.toml` (the
+ *      --config matters, see cloudflare/README.md; the service binding
+ *      needs wrangler.toml, so a dashboard paste alone won't configure it).
  *   3. Add one Route on the oliverbarwell.com zone pointing at that
  *      Worker: `oliverbarwell.com/step-pyramid*` (no slash before the *
  *      -- an exact, non-wildcard route doesn't reliably match once a
