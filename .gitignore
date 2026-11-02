@@ -4,3 +4,4 @@ scratchpad/
 .wrangler/
 cloudflare/.wrangler/
 .claude/
+.codex/

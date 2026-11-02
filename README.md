@@ -23,7 +23,8 @@ Deploys as its own Cloudflare project with `npx wrangler deploy` from the
 repo root (pushing to `main` doesn't deploy -- see
 [`cloudflare/README.md`](cloudflare/README.md#updating-later)). No build
 step; `.assetsignore` limits what gets published to `index.html`,
-`how-to-solve.html`, `robots.txt` and `sitemap.xml`. `wrangler.jsonc` sets `not_found_handling: "single-page-application"`,
+`how-to-solve.html`, `robots.txt`, `sitemap.xml` and the two preview
+images (`og.png`, `og-guide.png`). `wrangler.jsonc` sets `not_found_handling: "single-page-application"`,
 which is required: without it, this deployment 404s on any request
 carrying a query string (including `?n=3`), since there's no Worker script
 to fall back to `index.html` when the built-in asset matcher doesn't
@@ -85,9 +86,25 @@ urls in `index.html` all point at the non-www form). Update every URL in
   puzzle and runs the guide's method, using only the move sequences the
   page teaches, against 2,000 random scrambles. Re-run it after editing any
   instruction or sequence on the page.
-- No `og:image`/`twitter:image` yet -- there's no real screenshot asset,
-  and a missing one silently returns the HTML page instead of a 404
-  (`not_found_handling: "single-page-application"`, see above), which
-  would be worse than no image tag at all for link previews. Add a real
-  1200x630 image at `/step-pyramid-og.png` and reinstate the tags in
-  `index.html` once it exists.
+- Social preview images: `og.png` (solver) and `og-guide.png` (guide),
+  1200x630, rendered from `tools/og/card.html` by `tools/og/render.sh`.
+  They're served at `/step-pyramid/og.png` and `/step-pyramid/og-guide.png`.
+  Don't name an image `/step-pyramid-something.png` at the zone root: the
+  mount Worker's route catches it and it never reaches this deployment.
+- Only the paths listed in `PAGES` in `cloudflare/worker.js` are served;
+  everything else under `/step-pyramid` is a real 404. Without that, the
+  SPA fallback answers any unknown path with the solver page and a 200.
+  **Adding a page means adding it to `PAGES`** and redeploying the mount
+  Worker (see `cloudflare/README.md`).
+
+## Checks
+
+No build step or test runner; each check is a standalone script.
+
+- `node tools/check_solver.mjs`: runs the solver in `index.html` against
+  random scrambles for both sizes and checks every solution actually
+  solves the puzzle (about 15 seconds).
+- `python3 tools/check_guide.py`: simulates the puzzle and runs the
+  beginner's method from `how-to-solve.html` against 2,000 scrambles.
+- `node tools/check_worker.mjs`: checks the mount Worker's routing
+  (forwarded pages, redirects, 404s).
